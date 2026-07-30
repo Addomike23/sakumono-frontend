@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { 
-  FaStar, FaUser, FaCalendarAlt, FaSpinner,
+import {
+  FaStar, FaStarHalfAlt, FaRegStar, FaUser, FaCalendarAlt, FaSpinner,
   FaEdit, FaTrash, FaPlus, FaEye,
   FaCheckCircle, FaClock, FaQuoteLeft
 } from 'react-icons/fa'
@@ -34,12 +34,12 @@ const PatientReviews = () => {
     setLoading(true)
     try {
       // Use the patient-specific endpoint
-      const response = await reviewsApi.getMyReviews({ 
-        page: pagination.page, 
-        limit: pagination.limit 
+      const response = await reviewsApi.getMyReviews({
+        page: pagination.page,
+        limit: pagination.limit
       })
       console.log('Reviews response:', response.data)
-      
+
       setReviews(response.data.reviews || [])
       setStats({
         total: response.data.stats?.total || 0,
@@ -56,7 +56,7 @@ const PatientReviews = () => {
 
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this review?')) return
-    
+
     try {
       await reviewsApi.delete(id)
       toast.success('Review deleted')
@@ -170,9 +170,8 @@ const PatientReviews = () => {
                       <span className="flex items-center gap-1">
                         <FaCalendarAlt size={12} /> {formatDate(review.createdAt)}
                       </span>
-                      <span className={`flex items-center gap-1 ${
-                        review.isPublic ? 'text-emerald-600' : 'text-gray-400'
-                      }`}>
+                      <span className={`flex items-center gap-1 ${review.isPublic ? 'text-emerald-600' : 'text-gray-400'
+                        }`}>
                         {review.isPublic ? (
                           <><FaCheckCircle size={12} /> Public</>
                         ) : (
@@ -193,6 +192,7 @@ const PatientReviews = () => {
                         to={`/reviews/${review._id}`}
                         className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                         title="View"
+                        target="_blank"
                       >
                         <FaEye size={15} />
                       </Link>

@@ -1,6 +1,7 @@
 import axios from "axios";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "https://sakumono-backend.vercel.app/api";
+// const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
 
 const axiosClient = axios.create({
   baseURL: BASE_URL,

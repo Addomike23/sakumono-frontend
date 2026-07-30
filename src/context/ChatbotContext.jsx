@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useRef, useEffect } from 'react'
+import React, { createContext, useState, useContext, useRef, useEffect, useCallback } from 'react'
 import { chatbotApi } from '../api/chatbotApi'
 import { useAuth } from './AuthContext'
 import toast from 'react-hot-toast'
@@ -20,8 +20,61 @@ export const ChatbotProvider = ({ children }) => {
   const [isTyping, setIsTyping] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
   const [quickReplies, setQuickReplies] = useState([])
+  const [conversationState, setConversationState] = useState('chat')
+  const [isInitialized, setIsInitialized] = useState(false)
   const messagesEndRef = useRef(null)
   const initializedRef = useRef(false)
+  const messageIdCounter = useRef(0)
+
+  // Generate unique message IDs
+  const generateId = () => {
+    messageIdCounter.current += 1
+    return `msg_${Date.now()}_${messageIdCounter.current}`
+  }
+
+  // Initialize with greeting
+  const initializeChat = useCallback(async () => {
+    if (messages.length === 0 && !isInitialized) {
+      try {
+        const response = await chatbotApi.getGreeting()
+        const greetingText = response.data.message || 
+          "👋 Hello! Welcome to Sakumono Community Hospital. I'm Sakumono Assist — your friendly AI receptionist!\n\nHow can I help you today? 😊"
+        
+        setMessages([
+          {
+            id: generateId(),
+            text: greetingText,
+            sender: 'bot',
+            timestamp: new Date(),
+            isGreeting: true
+          }
+        ])
+        setIsInitialized(true)
+        
+        // Get quick replies
+        try {
+          const repliesRes = await chatbotApi.getQuickReplies()
+          if (repliesRes.data?.replies) {
+            setQuickReplies(repliesRes.data.replies.slice(0, 6))
+          }
+        } catch (err) {
+          console.error('Failed to load quick replies:', err)
+        }
+      } catch (error) {
+        console.error('Failed to load greeting:', error)
+        setMessages([
+          {
+            id: generateId(),
+            text: "👋 Hello! Welcome to Sakumono Community Hospital. I'm Sakumono Assist — your friendly AI receptionist!\n\nHow can I help you today? 😊",
+            sender: 'bot',
+            timestamp: new Date(),
+            isGreeting: true
+          }
+        ])
+        setIsInitialized(true)
+      }
+    }
+  }, [messages.length, isInitialized])
 
   // Auto-initialize chat when component mounts
   useEffect(() => {
@@ -29,38 +82,9 @@ export const ChatbotProvider = ({ children }) => {
       initializedRef.current = true
       initializeChat()
     }
-  }, [])
+  }, [initializeChat])
 
-  // Initialize with greeting
-  const initializeChat = async () => {
-    if (messages.length === 0) {
-      try {
-        const response = await chatbotApi.getGreeting()
-        setMessages([
-          {
-            id: Date.now(),
-            text: response.data.message || "Hello! Welcome to Sakumono Community Hospital. How can I assist you today?",
-            sender: 'bot',
-            timestamp: new Date(),
-            isGreeting: true
-          }
-        ])
-      } catch (error) {
-        console.error('Failed to load greeting:', error)
-        setMessages([
-          {
-            id: Date.now(),
-            text: "Hello! Welcome to Sakumono Community Hospital. How can I assist you today?",
-            sender: 'bot',
-            timestamp: new Date(),
-            isGreeting: true
-          }
-        ])
-      }
-    }
-  }
-
-  const toggleChat = () => {
+  const toggleChat = useCallback(() => {
     const newState = !isOpen
     setIsOpen(newState)
     
@@ -72,18 +96,21 @@ export const ChatbotProvider = ({ children }) => {
     } else {
       setUnreadCount(prev => prev + 1)
     }
-  }
+  }, [isOpen, messages.length, initializeChat])
 
-  const sendMessage = async (text) => {
+  const sendMessage = useCallback(async (text) => {
     if (!text || !text.trim()) return
 
-    // Snapshot prior turns as history BEFORE adding the new user message,
-    // trimmed to the fields the backend actually reads (sender, text).
-    const historyForRequest = messages.map(({ sender, text }) => ({ sender, text }))
+    // Snapshot prior turns as history
+    const historyForRequest = messages.map(({ sender, text, action }) => ({ 
+      sender, 
+      text,
+      action: action || null
+    }))
 
     // Add user message
     const userMessage = {
-      id: Date.now(),
+      id: generateId(),
       text: text.trim(),
       sender: 'user',
       timestamp: new Date()
@@ -94,35 +121,43 @@ export const ChatbotProvider = ({ children }) => {
     setIsTyping(true)
 
     try {
-      // Send to backend, with history + auth-aware routing
+      // Send to backend with context
       const response = await chatbotApi.sendMessage(
         text.trim(),
         historyForRequest,
-        isAuthenticated && !!user
+        isAuthenticated && !!user,
+        conversationState
       )
+      
+      // Get quick replies from response or fallback
+      const newQuickReplies = response.data.quickReplies || []
+      if (newQuickReplies.length > 0) {
+        setQuickReplies(newQuickReplies)
+      }
+      
+      // Update conversation state
+      if (response.data.conversationState) {
+        setConversationState(response.data.conversationState)
+      }
       
       // Add bot response
       const botMessage = {
-        id: Date.now() + 1,
+        id: generateId(),
         text: response.data.reply || "I understand. Let me help you with that.",
         sender: 'bot',
         timestamp: new Date(),
-        quickReplies: response.data.quickReplies || [],
+        quickReplies: newQuickReplies,
         link: response.data.link || null,
-        action: response.data.intent || null
+        action: response.data.action || response.data.intent || null
       }
       setMessages(prev => [...prev, botMessage])
-      
-      // Update quick replies
-      if (response.data.quickReplies && response.data.quickReplies.length > 0) {
-        setQuickReplies(response.data.quickReplies)
-      }
       
     } catch (error) {
       console.error('Chat error:', error)
       const errorMessage = {
-        id: Date.now() + 1,
-        text: "Sorry, I'm having trouble connecting. Please try again or contact our support team directly.",
+        id: generateId(),
+        text: "Sorry, I'm having trouble connecting. 😅 Please try again or contact our support team directly at " + 
+              "info@sakumonohospital.com or call +233 55 500 0000.",
         sender: 'bot',
         timestamp: new Date(),
         isError: true
@@ -132,30 +167,42 @@ export const ChatbotProvider = ({ children }) => {
     } finally {
       setIsTyping(false)
     }
-  }
+  }, [messages, isAuthenticated, user, conversationState])
 
-  const handleQuickReply = (reply) => {
+  const handleQuickReply = useCallback((reply) => {
     sendMessage(reply)
-  }
+  }, [sendMessage])
 
-  const clearMessages = () => {
+  const clearMessages = useCallback(() => {
     setMessages([])
     setQuickReplies([])
-    initializeChat()
-  }
-
-  const scrollToBottom = () => {
+    setConversationState('chat')
+    setIsInitialized(false)
+    initializedRef.current = false
     setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+      initializeChat()
     }, 100)
-  }
+  }, [initializeChat])
+
+  const scrollToBottom = useCallback(() => {
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+    }, 100)
+  }, [])
 
   // Scroll to bottom when messages change
   useEffect(() => {
     if (messages.length > 0) {
       scrollToBottom()
     }
-  }, [messages])
+  }, [messages, scrollToBottom])
+
+  // Reset unread count when chat is opened
+  useEffect(() => {
+    if (isOpen) {
+      setUnreadCount(0)
+    }
+  }, [isOpen])
 
   const value = {
     isOpen,
@@ -163,6 +210,8 @@ export const ChatbotProvider = ({ children }) => {
     isTyping,
     unreadCount,
     quickReplies,
+    conversationState,
+    isInitialized,
     messagesEndRef,
     toggleChat,
     sendMessage,
@@ -171,7 +220,8 @@ export const ChatbotProvider = ({ children }) => {
     initializeChat,
     setIsOpen,
     setUnreadCount,
-    scrollToBottom
+    scrollToBottom,
+    generateId
   }
 
   return (

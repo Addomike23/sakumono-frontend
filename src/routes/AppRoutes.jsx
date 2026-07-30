@@ -45,6 +45,7 @@ import PatientReviews from "../pages/patient/Reviews";
 import WriteReview from "../pages/patient/WriteReview";
 import PatientNotifications from "../pages/patient/Notifications";
 import EditPatientProfile from '../pages/patient/EditPatientProfile'
+import ReviewDetail from '../pages/patient/ReviewDetail'
 
 // ============================================================
 // DOCTOR PAGES
@@ -140,7 +141,7 @@ const AppRoutes = () => {
           {/* Reviews */}
           <Route path="/patient/reviews" element={<PatientReviews />} />
           <Route path="/patient/reviews/new" element={<WriteReview />} />
-
+          <Route path="/reviews/:id" element={<ReviewDetail />} />
           {/* Notifications */}
           <Route path="/patient/notifications" element={<PatientNotifications />} />
         </Route>
