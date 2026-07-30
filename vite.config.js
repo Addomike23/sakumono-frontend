@@ -25,7 +25,8 @@ export default defineConfig({
     // ============================================================
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'https://sakumono-backend.vercel.app',
+        // target: 'http://localhost:8000',
         changeOrigin: true,
         // Optional: Rewrite path if needed
         // rewrite: (path) => path.replace(/^\/api/, ''),
