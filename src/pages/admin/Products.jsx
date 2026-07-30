@@ -62,7 +62,7 @@ const AdminProducts = () => {
       const response = await shopApi.getCategories()
       setCategories(response.data.categories || [])
     } catch (error) {
-      console.error('Failed to load categories')
+      toast.error('Failed to load categories')
     }
   }
 
@@ -71,7 +71,7 @@ const AdminProducts = () => {
       const response = await shopApi.getProductStats()
       setStats(response.data.stats || {})
     } catch (error) {
-      console.error('Failed to load stats')
+      toast.error('Failed to load stats')
     }
   }
 

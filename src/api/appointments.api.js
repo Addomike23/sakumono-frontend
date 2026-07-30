@@ -11,7 +11,6 @@ export const appointmentsApi = {
   getById: (id) => axiosClient.get(`/appointments/${id}`),
  // In appointments.api.js
 update: (id, data) => {
-  console.log('Updating appointment:', { id, data });
   return axiosClient.put(`/appointments/${id}`, data);
 },
   cancel: (id, reason) => axiosClient.put(`/appointments/${id}/cancel`, { reason }),

@@ -38,7 +38,7 @@ const PatientReviews = () => {
         page: pagination.page,
         limit: pagination.limit
       })
-      console.log('Reviews response:', response.data)
+      
 
       setReviews(response.data.reviews || [])
       setStats({
@@ -47,7 +47,7 @@ const PatientReviews = () => {
       })
       setPagination(response.data.pagination || { page: 1, limit: 10, total: 0, pages: 0 })
     } catch (error) {
-      console.error('Fetch reviews error:', error)
+    
       toast.error(error.response?.data?.message || 'Failed to load reviews')
     } finally {
       setLoading(false)
@@ -62,7 +62,6 @@ const PatientReviews = () => {
       toast.success('Review deleted')
       fetchReviews()
     } catch (error) {
-      console.error('Delete error:', error)
       toast.error(error.response?.data?.message || 'Failed to delete review')
     }
   }

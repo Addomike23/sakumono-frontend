@@ -62,7 +62,7 @@ const BookAppointment = () => {
     setLoading(true)
     try {
       const response = await doctorsApi.getAll({ isAvailable: true })
-      console.log('Doctors response:', response.data)
+      
       setDoctors(response.data.doctors || [])
       
       // If doctorId from URL, verify and select
@@ -77,7 +77,7 @@ const BookAppointment = () => {
         }
       }
     } catch (error) {
-      console.error('Failed to load doctors:', error)
+     
       toast.error('Failed to load doctors')
     } finally {
       setLoading(false)
@@ -90,9 +90,9 @@ const BookAppointment = () => {
     setSelectedTime('')
     
     try {
-      console.log('Fetching slots for:', { doctorId: selectedDoctor, date: selectedDate })
+      
       const response = await appointmentsApi.getAvailability(selectedDoctor, selectedDate)
-      console.log('Available slots response:', response.data)
+     
       
       const slots = response.data.slots || []
       setAvailableSlots(slots)
@@ -101,7 +101,6 @@ const BookAppointment = () => {
         toast.error('No available slots for this date')
       }
     } catch (error) {
-      console.error('Failed to load available slots:', error)
       const message = error.response?.data?.message || 'Failed to load available slots'
       toast.error(message)
       setAvailableSlots([])
@@ -119,19 +118,19 @@ const BookAppointment = () => {
   }
 
   const handleDateSelect = (date) => {
-    console.log('Date selected:', date)
+   
     setSelectedDate(date)
     setSelectedTime('')
     setAvailableSlots([])
   }
 
   const handleTimeSelect = (time) => {
-    console.log('Time selected:', time)
+    
     setSelectedTime(time)
   }
 
   const handleNext = () => {
-    console.log('Current selectedTime:', selectedTime)
+  
     if (step === 2) {
       if (!selectedDate) {
         toast.error('Please select a date')
@@ -176,7 +175,7 @@ const BookAppointment = () => {
       symptoms: symptomsArray
     }
 
-    console.log('Sending appointment data:', data)
+
 
     // Validate before sending
     if (!data.timeSlot) {
@@ -190,8 +189,6 @@ const BookAppointment = () => {
       toast.success('Appointment booked successfully!')
       navigate(`/patient/appointments/${response.data.data._id}`)
     } catch (error) {
-      console.error('Booking error:', error)
-      console.error('Error response:', error.response?.data)
       toast.error(error.response?.data?.message || 'Failed to book appointment')
     } finally {
       setSubmitting(false)

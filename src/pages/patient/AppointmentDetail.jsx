@@ -52,7 +52,7 @@ const AppointmentDetail = () => {
       setDoctorNotes(response.data.appointment.doctorNotes || '')
       setPrescriptions(response.data.appointment.prescription || [])
     } catch (error) {
-      console.error('Fetch appointment error:', error)
+      
       toast.error('Failed to load appointment')
       navigate(-1)
     } finally {
@@ -67,17 +67,15 @@ const AppointmentDetail = () => {
     try {
       // Make sure we're sending the status in the correct format
       const data = { status: newStatus }
-      console.log('Updating status with data:', data)
+      
 
       const response = await appointmentsApi.update(id, data)
-      console.log('Update response:', response.data)
+      
 
       toast.success(`Appointment ${newStatus}`)
       setStatus(newStatus)
       fetchAppointment() // Refresh the data
     } catch (error) {
-      console.error('Status update error:', error)
-      console.error('Error response:', error.response?.data)
       toast.error(error.response?.data?.message || 'Failed to update status')
     } finally {
       setUpdating(false)
@@ -92,7 +90,7 @@ const AppointmentDetail = () => {
       setIsEditing(false)
       fetchAppointment()
     } catch (error) {
-      console.error('Save notes error:', error)
+     
       toast.error('Failed to save notes')
     } finally {
       setUpdating(false)
@@ -120,7 +118,7 @@ const AppointmentDetail = () => {
       setPrescription({ medication: '', dosage: '', instructions: '' })
       fetchAppointment()
     } catch (error) {
-      console.error('Add prescription error:', error)
+      
       toast.error('Failed to add prescription')
     } finally {
       setUpdating(false)
@@ -138,7 +136,7 @@ const AppointmentDetail = () => {
       setPrescriptions(newPrescriptions)
       fetchAppointment()
     } catch (error) {
-      console.error('Remove prescription error:', error)
+     
       toast.error('Failed to remove prescription')
     } finally {
       setUpdating(false)

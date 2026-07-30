@@ -47,7 +47,7 @@ const BlogPost = () => {
       setRelatedPosts(data.relatedPosts || [])
       setLikesCount(data.blog.likes || 0)
     } catch (error) {
-      console.error('Failed to fetch blog:', error)
+     
       toast.error('Blog post not found')
       navigate('/blog')
     } finally {

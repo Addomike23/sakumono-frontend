@@ -52,7 +52,7 @@ const DoctorAppointments = () => {
       if (dateFilter) params.date = dateFilter
       
       const response = await appointmentsApi.getForDoctor(params)
-      console.log('Appointments response:', response.data)
+     
       setAppointments(response.data.appointments || [])
       setStats({
         total: response.data.pagination?.total || 0,
@@ -63,7 +63,7 @@ const DoctorAppointments = () => {
       })
       setPagination(response.data.pagination || { page: 1, limit: 10, total: 0, pages: 0 })
     } catch (error) {
-      console.error('Fetch appointments error:', error)
+      
       toast.error('Failed to load appointments')
     } finally {
       setLoading(false)
@@ -76,7 +76,7 @@ const DoctorAppointments = () => {
       toast.success(`Appointment ${status}`)
       fetchAppointments()
     } catch (error) {
-      console.error('Update status error:', error)
+     
       toast.error('Failed to update appointment')
     }
   }

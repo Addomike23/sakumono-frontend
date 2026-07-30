@@ -54,7 +54,7 @@ const AdminSubscribers = () => {
       const response = await subscriptionApi.getStats()
       setStats(response.data.stats || {})
     } catch (error) {
-      console.error('Failed to load stats')
+      toast.error('Failed to load stats')
     }
   }
 

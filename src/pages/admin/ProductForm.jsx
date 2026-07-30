@@ -99,7 +99,7 @@ const ProductForm = () => {
       })
       setExistingImages(product.images || [])
     } catch (error) {
-      console.error('Fetch product error:', error)
+     
       toast.error('Failed to load product')
       navigate('/admin/products')
     } finally {
@@ -244,7 +244,7 @@ const ProductForm = () => {
       }
       navigate('/admin/products')
     } catch (error) {
-      console.error('Submit error:', error)
+     
       toast.error(error.response?.data?.message || 'Failed to save product')
     } finally {
       setSaving(false)

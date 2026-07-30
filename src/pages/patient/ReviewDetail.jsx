@@ -35,10 +35,8 @@ const ReviewDetail = () => {
     setLoading(true)
     try {
       const response = await reviewsApi.getById(id)
-      console.log('Review detail:', response.data)
       setReview(response.data.review)
     } catch (error) {
-      console.error('Fetch review error:', error)
       toast.error('Failed to load review')
       navigate('/reviews')
     } finally {

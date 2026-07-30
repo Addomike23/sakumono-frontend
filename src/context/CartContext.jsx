@@ -25,7 +25,6 @@ export const CartProvider = ({ children }) => {
         const parsed = JSON.parse(savedCart)
         setCartItems(parsed)
       } catch (error) {
-        console.error('Failed to load cart:', error)
         setCartItems([])
       }
     }

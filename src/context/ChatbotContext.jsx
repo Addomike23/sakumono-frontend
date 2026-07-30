@@ -58,10 +58,10 @@ export const ChatbotProvider = ({ children }) => {
             setQuickReplies(repliesRes.data.replies.slice(0, 6))
           }
         } catch (err) {
-          console.error('Failed to load quick replies:', err)
+          toast.error('Failed to load quick replies:', err)
         }
       } catch (error) {
-        console.error('Failed to load greeting:', error)
+        
         setMessages([
           {
             id: generateId(),
@@ -153,7 +153,7 @@ export const ChatbotProvider = ({ children }) => {
       setMessages(prev => [...prev, botMessage])
       
     } catch (error) {
-      console.error('Chat error:', error)
+      
       const errorMessage = {
         id: generateId(),
         text: "Sorry, I'm having trouble connecting. 😅 Please try again or contact our support team directly at " + 

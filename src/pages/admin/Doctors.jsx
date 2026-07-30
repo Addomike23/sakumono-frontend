@@ -48,7 +48,7 @@ const AdminDoctors = () => {
       if (specializationFilter) params.specialization = specializationFilter
       
       const response = await doctorsApi.getAllAdmin(params)
-      console.log('Doctors response:', response.data)
+      
       
       setDoctors(response.data.doctors || [])
       setStats({
@@ -58,7 +58,7 @@ const AdminDoctors = () => {
       })
       setPagination(response.data.pagination || { page: 1, limit: 20, total: 0, pages: 0 })
     } catch (error) {
-      console.error('Failed to load doctors:', error)
+     
       toast.error('Failed to load doctors')
     } finally {
       setLoading(false)
@@ -70,7 +70,7 @@ const AdminDoctors = () => {
       const response = await doctorsApi.getSpecializations()
       setSpecializations(response.data.specializations || [])
     } catch (error) {
-      console.error('Failed to load specializations')
+      toast.error('Failed to load specializations')
     }
   }
 
@@ -83,7 +83,7 @@ const AdminDoctors = () => {
       toast.success(`Doctor ${currentStatus ? 'unavailable' : 'available'} successfully`)
       fetchDoctors()
     } catch (error) {
-      console.error('Toggle status error:', error)
+     
       toast.error(error.response?.data?.message || 'Failed to update status')
     } finally {
       setUpdating(null)
@@ -97,7 +97,7 @@ const AdminDoctors = () => {
       toast.success('Doctor deleted')
       fetchDoctors()
     } catch (error) {
-      console.error('Delete error:', error)
+     
       toast.error(error.response?.data?.message || 'Failed to delete doctor')
     }
   }

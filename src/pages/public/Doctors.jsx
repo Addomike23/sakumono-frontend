@@ -59,7 +59,7 @@ const Doctors = () => {
       const response = await doctorsApi.getSpecializations()
       setSpecializations(response.data.specializations || [])
     } catch (error) {
-      console.error('Failed to load specializations')
+      toast.error("failed to fecth specialization")
     }
   }
 

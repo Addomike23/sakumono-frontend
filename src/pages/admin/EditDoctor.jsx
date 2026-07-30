@@ -99,7 +99,7 @@ const EditDoctor = () => {
       setCurrentImage(userData.profileImage || null)
       
     } catch (error) {
-      console.error('Fetch doctor error:', error)
+      
       toast.error('Failed to load doctor details')
       navigate('/admin/doctors')
     } finally {
@@ -197,7 +197,7 @@ const EditDoctor = () => {
       toast.success('Doctor updated successfully!')
       navigate('/admin/doctors')
     } catch (error) {
-      console.error('Update error:', error)
+      
       toast.error(error.response?.data?.message || 'Failed to update doctor')
     } finally {
       setSaving(false)

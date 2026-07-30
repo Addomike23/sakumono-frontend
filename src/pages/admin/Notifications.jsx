@@ -60,7 +60,7 @@ const AdminNotifications = () => {
       const response = await notificationsApi.getStats()
       setStats(response.data.stats || {})
     } catch (error) {
-      console.error('Failed to load stats')
+      toast.error('Failed to load stats')
     }
   }
 

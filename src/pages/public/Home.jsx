@@ -198,7 +198,6 @@ const Home = () => {
         setHeroMessages([FALLBACK_HERO]);
       }
     } catch (error) {
-      console.error('Failed to fetch hero message:', error);
       setHeroMessages([FALLBACK_HERO]);
       toast.error('Failed to load hero content');
     } finally {
@@ -220,10 +219,11 @@ const Home = () => {
         setReviewStats(reviewsRes.data.stats);
         setTopReviews(reviewsRes.data.reviews || []);
       } catch (err) {
-        console.error('Failed to load reviews:', err);
+      toast.error('Failed to load some content');
+        
       }
     } catch (error) {
-      console.error('Failed to fetch home data:', error);
+      
       toast.error('Failed to load some content');
     } finally {
       setLoading(false);

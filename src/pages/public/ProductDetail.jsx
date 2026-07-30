@@ -48,7 +48,7 @@ const ProductDetail = () => {
       setProduct(data.product)
       setRelatedProducts(data.relatedProducts || [])
     } catch (error) {
-      console.error('Failed to fetch product:', error)
+    
       toast.error('Product not found')
       navigate('/shop')
     } finally {

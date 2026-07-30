@@ -59,13 +59,11 @@ const PatientProfile = () => {
     setLoading(true)
     try {
       const response = await patientsApi.getProfile()
-      console.log('Profile response:', response.data)
       
       setProfile(response.data.patient)
       setPatientData(response.data.user)
       setStats(response.data.patient?.stats || {})
     } catch (error) {
-      console.error('Fetch profile error:', error)
       toast.error('Failed to load profile')
     } finally {
       setLoading(false)

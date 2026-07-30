@@ -192,12 +192,10 @@ const AdminDashboard = () => {
         { name: 'Subscriptions', result: subsRes }
       ].filter(r => r.result.status === 'rejected')
 
-      if (failed.length > 0) {
-        console.warn('Some data fetches failed:', failed.map(f => f.name))
-      }
+      
 
     } catch (error) {
-      console.error('Dashboard fetch error:', error)
+
       setError('Failed to load dashboard data. Please refresh the page.')
       toast.error('Failed to load dashboard data')
     } finally {

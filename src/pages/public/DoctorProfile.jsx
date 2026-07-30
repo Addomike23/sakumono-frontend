@@ -40,10 +40,10 @@ const DoctorProfile = () => {
     setLoading(true)
     try {
       const response = await doctorsApi.getById(id)
-      console.log('Doctor response:', response.data)
+    
       setDoctor(response.data.doctor)
     } catch (error) {
-      console.error('Fetch doctor error:', error)
+      
       toast.error('Failed to load doctor profile')
     } finally {
       setLoading(false)
@@ -53,7 +53,7 @@ const DoctorProfile = () => {
   const fetchReviews = async () => {
     try {
       const response = await reviewsApi.getDoctorReviews(id, { limit: 5 })
-      console.log('Reviews response:', response.data)
+      
       setReviews(response.data.reviews || [])
       setReviewStats({
         average: response.data.stats?.averageRating || 0,
@@ -61,7 +61,7 @@ const DoctorProfile = () => {
         distribution: response.data.stats?.ratingDistribution || {}
       })
     } catch (error) {
-      console.error('Fetch reviews error:', error)
+      toast.error(error)
     }
   }
 

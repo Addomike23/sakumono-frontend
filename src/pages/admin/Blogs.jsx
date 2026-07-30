@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { 
+import {
   FaSearch, FaPlus, FaEdit, FaTrash, FaEye,
-  FaSpinner, FaFilter, FaChevronDown, 
+  FaSpinner, FaFilter, FaChevronDown,
   FaCalendarAlt, FaUser, FaTag, FaClock,
   FaCheckCircle, FaTimesCircle, FaBookOpen,
   FaImage, FaChartBar,
@@ -49,12 +49,12 @@ const AdminBlogs = () => {
       if (search) params.search = search
       if (statusFilter) params.status = statusFilter
       if (categoryFilter) params.category = categoryFilter
-      
+
       const response = await blogsApi.getAllAdmin(params)
       setBlogs(response.data.blogs || [])
       setPagination(response.data.pagination || { page: 1, limit: 20, total: 0, pages: 0 })
     } catch (error) {
-      console.error('Fetch blogs error:', error)
+
       toast.error('Failed to load blogs')
     } finally {
       setLoading(false)
@@ -66,7 +66,7 @@ const AdminBlogs = () => {
       const response = await blogsApi.getCategories()
       setCategories(response.data.categories || [])
     } catch (error) {
-      console.error('Failed to load categories')
+      toast.error('Failed to load categories')
     }
   }
 
@@ -75,7 +75,7 @@ const AdminBlogs = () => {
       const response = await blogsApi.getStats()
       setStats(response.data.stats || {})
     } catch (error) {
-      console.error('Failed to load stats')
+      toast.error('Failed to load stats')
     }
   }
 
@@ -87,7 +87,6 @@ const AdminBlogs = () => {
       fetchBlogs()
       fetchStats()
     } catch (error) {
-      console.error('Delete error:', error)
       toast.error('Failed to delete blog')
     }
   }
@@ -268,9 +267,9 @@ const AdminBlogs = () => {
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
                             {blog.featuredImage ? (
-                              <img 
-                                src={blog.featuredImage} 
-                                alt={blog.title} 
+                              <img
+                                src={blog.featuredImage}
+                                alt={blog.title}
                                 className="w-10 h-10 rounded-lg object-cover border border-gray-200 flex-shrink-0"
                               />
                             ) : (

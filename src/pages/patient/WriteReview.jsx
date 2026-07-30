@@ -99,11 +99,7 @@ const WriteReview = () => {
       
       if (avatar) {
         formData.append('avatar', avatar)
-        console.log('Avatar file attached:', { 
-          name: avatar.name, 
-          type: avatar.type, 
-          size: avatar.size 
-        })
+       
       }
 
       // ✅ Use fetch directly like AddDoctor does
@@ -117,7 +113,7 @@ const WriteReview = () => {
       })
 
       const data = await response.json()
-      console.log('Review response:', data)
+      
       
       if (data.success) {
         toast.success('Review submitted successfully!')
@@ -126,7 +122,7 @@ const WriteReview = () => {
         toast.error(data.message || 'Failed to submit review')
       }
     } catch (error) {
-      console.error('Submit error:', error)
+      
       toast.error('Failed to submit review')
     } finally {
       setSubmitting(false)

@@ -57,7 +57,7 @@ const Reviews = () => {
       setReviews(response.data.reviews || [])
       setPagination(response.data.pagination || { page: 1, limit: 9, total: 0, pages: 0 })
     } catch (error) {
-      console.error('Fetch reviews error:', error)
+      
       toast.error('Failed to load reviews')
     } finally {
       setLoading(false)
@@ -73,7 +73,7 @@ const Reviews = () => {
         ratingDistribution: response.data.stats?.ratingDistribution || { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
       })
     } catch (error) {
-      console.error('Failed to load stats:', error)
+      toast.error('Failed to load stats:', error)
     }
   }
 

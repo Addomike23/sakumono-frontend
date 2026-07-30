@@ -58,7 +58,6 @@ const EditPatientProfile = () => {
     setLoading(true)
     try {
       const response = await patientsApi.getProfile()
-      console.log('Profile response:', response.data)
       
       const patient = response.data.patient
       const userData = response.data.user
@@ -86,7 +85,6 @@ const EditPatientProfile = () => {
       
       setCurrentImage(userData?.profileImage || null)
     } catch (error) {
-      console.error('Fetch profile error:', error)
       toast.error('Failed to load profile')
       navigate('/patient/profile')
     } finally {
@@ -158,33 +156,10 @@ const handleSubmit = async (e) => {
     formDataToSend.append('address', JSON.stringify(formData.address))
     formDataToSend.append('emergencyContact', JSON.stringify(formData.emergencyContact))
     
-    // ✅ IMPORTANT: Check if profileImage exists before appending
-    if (profileImage) {
-      formDataToSend.append('profileImage', profileImage)
-      console.log('Profile image attached:', profileImage.name, profileImage.size, 'bytes')
-    } else {
-      console.log('No new profile image selected - keeping existing')
-    }
-
-    // ✅ Log all FormData entries for debugging
-    console.log('=== FormData Entries ===')
-    for (let pair of formDataToSend.entries()) {
-      if (pair[1] instanceof File) {
-        console.log(pair[0] + ': ' + pair[1].name + ' (' + pair[1].type + ', ' + pair[1].size + ' bytes)')
-      } else {
-        console.log(pair[0] + ': ' + pair[1])
-      }
-    }
-
-    // ✅ Send the FormData
-    const response = await patientsApi.updateProfile(formDataToSend)
-    console.log('Update response:', response.data)
     
     toast.success('Profile updated successfully!')
     navigate('/patient/profile')
   } catch (error) {
-    console.error('Update error:', error)
-    console.error('Error response:', error.response?.data)
     toast.error(error.response?.data?.message || 'Failed to update profile')
   } finally {
     setSaving(false)

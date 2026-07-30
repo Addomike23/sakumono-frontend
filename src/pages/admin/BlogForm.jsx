@@ -158,7 +158,7 @@ const BlogForm = () => {
       }
       navigate('/admin/blogs')
     } catch (error) {
-      console.error('Submit error:', error)
+      
       toast.error(error.response?.data?.message || 'Failed to save blog post')
     } finally {
       setSaving(false)

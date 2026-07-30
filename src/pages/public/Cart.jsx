@@ -144,7 +144,7 @@ const Cart = () => {
       clearCart()
       navigate('/patient/orders')
     } catch (error) {
-      console.error('Checkout error:', error)
+      
       toast.error(error.response?.data?.message || 'Failed to place order')
     } finally {
       setIsCheckingOut(false)

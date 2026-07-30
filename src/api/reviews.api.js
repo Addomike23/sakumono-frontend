@@ -5,9 +5,9 @@ export const reviewsApi = {
   getAll: (params) => axiosClient.get("/reviews", { params }),
   getStats: () => axiosClient.get("/reviews/stats"),
   getDoctorReviews: (doctorId, params) => {
-    console.log('getDoctorReviews called with doctorId:', doctorId);
+    
     if (!doctorId) {
-      console.error('No doctorId provided to getDoctorReviews');
+      
       return Promise.resolve({ data: { reviews: [], stats: { averageRating: 0, totalReviews: 0, ratingDistribution: {} } } });
     }
     return axiosClient.get(`/reviews/doctor/${doctorId}`, { params });

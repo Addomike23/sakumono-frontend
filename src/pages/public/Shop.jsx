@@ -83,7 +83,7 @@ const Shop = () => {
       const response = await shopApi.getCategories()
       setCategories(response.data.categories || [])
     } catch (error) {
-      console.error('Failed to load categories')
+      toast.error('Failed to load categories')
     }
   }
 

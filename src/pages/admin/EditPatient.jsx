@@ -93,7 +93,7 @@ const EditPatient = () => {
       setCurrentImage(patient.profileImage || null)
       
     } catch (error) {
-      console.error('Fetch patient error:', error)
+    
       toast.error('Failed to load patient details')
       navigate('/admin/patients')
     } finally {
@@ -169,7 +169,7 @@ const EditPatient = () => {
       toast.success('Patient updated successfully!')
       navigate('/admin/patients')
     } catch (error) {
-      console.error('Update error:', error)
+     
       toast.error(error.response?.data?.message || 'Failed to update patient')
     } finally {
       setSaving(false)
