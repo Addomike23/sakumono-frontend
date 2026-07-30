@@ -19,6 +19,7 @@ import ProductDetail from "../pages/public/ProductDetail";
 import Contact from "../pages/public/Contact";
 import Reviews from "../pages/public/Reviews";
 import Cart from '../pages/public/Cart'
+import ChatPage from '../components/chatbot/ChatPage'
 
 // ============================================================
 // AUTH PAGES
@@ -104,6 +105,9 @@ const AppRoutes = () => {
         <Route path="/services" element={<Services />} />
         <Route path="/cart" element={<Cart />} />
       </Route>
+
+      <Route path="/chat" element={<ChatPage />} />
+
 
       {/* ============================================================ */}
       {/* AUTH PAGES (Standalone, no Navbar/Footer) */}

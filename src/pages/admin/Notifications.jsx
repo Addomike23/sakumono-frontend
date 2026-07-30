@@ -5,7 +5,8 @@ import {
   FaBell, FaTrash, FaSpinner, FaEye,
   FaSearch, FaFilter, FaChevronDown,
   FaCalendarAlt, FaUser, FaCheckCircle, FaTimesCircle,
-  FaEnvelope, FaClock, FaPlus
+  FaEnvelope, FaClock, FaPlus,
+  FaXbox
 } from 'react-icons/fa'
 import { notificationsApi } from '../../api/notifications.api'
 import { useAuth } from '../../context/AuthContext'
@@ -176,7 +177,7 @@ const AdminNotifications = () => {
                 }}
                 className="flex items-center gap-1 px-3 py-2 text-sm text-green-600 hover:bg-green-50 rounded-lg transition-colors"
               >
-                <FaX /> Clear
+                <FaXbox /> Clear
               </button>
             )}
           </div>
