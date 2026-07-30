@@ -24,10 +24,11 @@ const ChatPage = () => {
   } = useChatbot()
   const { user } = useAuth()
   const [input, setInput] = useState('')
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false)
   const messagesEndRef = useRef(null)
+  const inputRef = useRef(null)
 
   useEffect(() => {
-    // Initialize chat if empty
     if (messages.length === 0) {
       initializeChat()
     }
@@ -38,8 +39,22 @@ const ChatPage = () => {
     scrollToBottom()
   }, [messages, isTyping])
 
+  // Handle keyboard visibility
+  useEffect(() => {
+    const handleResize = () => {
+      // Detect if keyboard is open (viewport height reduced)
+      const isKeyboard = window.innerHeight < window.outerHeight * 0.8
+      setIsKeyboardVisible(isKeyboard)
+    }
+    
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+    }, 100)
   }
 
   const handleSubmit = (e) => {
@@ -47,6 +62,10 @@ const ChatPage = () => {
     if (input.trim()) {
       sendMessage(input)
       setInput('')
+      // Blur input to dismiss keyboard
+      if (inputRef.current) {
+        inputRef.current.blur()
+      }
     }
   }
 
@@ -66,77 +85,147 @@ const ChatPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-green-600 to-green-700 px-4 py-4 sticky top-0 z-10 shadow-lg">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link 
-              to="/" 
-              className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
-              aria-label="Back to home"
-            >
-              <HiArrowLeft size={20} />
-            </Link>
-            <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white text-xl">
-                <HiOutlineSupport />
-              </div>
-              <div>
-                <h1 className="font-semibold text-white text-base">Sakumono Assist</h1>
-                <p className="text-[11px] text-green-100 flex items-center gap-1">
-                  <span className="w-2 h-2 bg-green-300 rounded-full animate-pulse inline-block"></span>
-                  Online • Ready to help
-                </p>
-              </div>
+    <div 
+      className="chat-page-container"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        background: '#f9fafb',
+        height: '100vh',
+        height: '100dvh', // Dynamic viewport height for mobile
+        overflow: 'hidden',
+        WebkitOverflowScrolling: 'touch',
+        // Prevent zoom
+        touchAction: 'manipulation',
+        WebkitTextSizeAdjust: '100%',
+      }}
+    >
+      {/* Header - Fixed */}
+      <div style={{
+        flexShrink: 0,
+        background: 'linear-gradient(to right, #059669, #047857)',
+        padding: '12px 16px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        zIndex: 10,
+        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+        minHeight: '56px',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <Link 
+            to="/" 
+            style={{
+              color: 'white',
+              background: 'rgba(255,255,255,0.15)',
+              borderRadius: '50%',
+              padding: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'background 0.2s',
+              textDecoration: 'none',
+            }}
+            aria-label="Back to home"
+          >
+            <HiArrowLeft size={20} />
+          </Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{
+              width: '36px',
+              height: '36px',
+              background: 'rgba(255,255,255,0.2)',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              fontSize: '18px',
+              flexShrink: 0,
+            }}>
+              <HiOutlineSupport />
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={clearMessages}
-              className="text-white/80 hover:text-white text-xs px-3 py-1.5 bg-white/10 rounded-full hover:bg-white/20 transition-colors"
-            >
-              Clear chat
-            </button>
-            {user && (
-              <div className="flex items-center gap-1.5 text-white/80 text-xs">
-                <HiUser size={14} />
-                <span>{user.firstName || 'Guest'}</span>
-              </div>
-            )}
+            <div>
+              <h1 style={{ 
+                fontWeight: 600, 
+                color: 'white', 
+                fontSize: '16px', 
+                margin: 0,
+                lineHeight: 1.2,
+              }}>
+                Sakumono Assist
+              </h1>
+              <p style={{ 
+                fontSize: '11px', 
+                color: '#d1fae5', 
+                margin: 0, 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '4px' 
+              }}>
+                <span style={{
+                  display: 'inline-block',
+                  width: '6px',
+                  height: '6px',
+                  background: '#6ee7b7',
+                  borderRadius: '50%',
+                  animation: 'pulse 2s infinite',
+                  flexShrink: 0,
+                }} />
+                <span>Online • Ready to help</span>
+              </p>
+            </div>
           </div>
         </div>
+        <button
+          onClick={clearMessages}
+          style={{
+            color: 'rgba(255,255,255,0.8)',
+            background: 'rgba(255,255,255,0.1)',
+            border: 'none',
+            padding: '4px 12px',
+            borderRadius: '20px',
+            fontSize: '12px',
+            cursor: 'pointer',
+            transition: 'background 0.2s',
+          }}
+        >
+          Clear chat
+        </button>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 max-w-4xl w-full mx-auto px-4 py-6 overflow-y-auto">
-        <div className="space-y-3">
-          {/* Date indicator */}
-          {messages.length > 0 && (
-            <div className="text-center">
-              <span className="text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full">
-                {formatDate(messages[0]?.timestamp || new Date())}
-              </span>
-            </div>
-          )}
-
+      {/* Messages - Flexible */}
+      <div style={{
+        flex: 1,
+        overflowY: 'auto',
+        padding: '16px',
+        paddingBottom: isKeyboardVisible ? '80px' : '16px',
+        WebkitOverflowScrolling: 'touch',
+        // Prevent zoom
+        touchAction: 'pan-y',
+      }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-[50vh] text-gray-400">
-              <motion.div
-                animate={{ 
-                  y: [0, -8, 0],
-                  rotate: [0, 5, -5, 0]
-                }}
-                transition={{ 
-                  duration: 3,
-                  repeat: Infinity,
-                  ease: 'easeInOut'
-                }}
-              >
-                <HiOutlineChatAlt2 className="text-5xl text-gray-300 mb-4" />
-              </motion.div>
-              <p className="text-lg font-medium text-gray-600">How can I help you today?</p>
-              <p className="text-sm text-gray-400 mt-1">Ask me about appointments, doctors, services, or just say hi!</p>
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '50vh',
+              color: '#9ca3af',
+            }}>
+              <HiOutlineChatAlt2 style={{ fontSize: '48px', color: '#d1d5db', marginBottom: '16px' }} />
+              <p style={{ fontSize: '18px', fontWeight: 500, color: '#4b5563', margin: 0 }}>
+                How can I help you today?
+              </p>
+              <p style={{ fontSize: '14px', color: '#9ca3af', marginTop: '4px' }}>
+                Ask me about appointments, doctors, or just say hi!
+              </p>
             </div>
           ) : (
             messages.map((msg, index) => {
@@ -144,55 +233,93 @@ const ChatPage = () => {
               return (
                 <React.Fragment key={msg.id}>
                   {showDate && index > 0 && (
-                    <div className="text-center my-4">
-                      <span className="text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full">
+                    <div style={{ textAlign: 'center', margin: '8px 0' }}>
+                      <span style={{
+                        fontSize: '11px',
+                        color: '#9ca3af',
+                        background: '#f3f4f6',
+                        padding: '4px 12px',
+                        borderRadius: '20px',
+                      }}>
                         {formatDate(msg.timestamp)}
                       </span>
                     </div>
                   )}
                   <div
-                    className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                    style={{
+                      display: 'flex',
+                      justifyContent: msg.sender === 'user' ? 'flex-end' : 'flex-start',
+                    }}
                   >
-                    <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      transition={{ duration: 0.3 }}
-                      className={`max-w-[85%] md:max-w-[75%] px-4 py-3 rounded-2xl text-sm ${
-                        msg.sender === 'user'
-                          ? 'bg-green-600 text-white rounded-tr-sm'
-                          : msg.isError
-                          ? 'bg-red-50 border border-red-200 text-red-700'
-                          : 'bg-white border border-gray-200 text-gray-800 rounded-tl-sm shadow-sm'
-                      }`}
-                    >
-                      <p className="whitespace-pre-wrap text-sm leading-relaxed">{msg.text}</p>
+                    <div style={{
+                      maxWidth: '85%',
+                      padding: '10px 16px',
+                      borderRadius: '16px',
+                      fontSize: '15px',
+                      ...(msg.sender === 'user'
+                        ? {
+                            background: '#059669',
+                            color: 'white',
+                            borderBottomRightRadius: '4px',
+                          }
+                        : msg.isError
+                        ? {
+                            background: '#fef2f2',
+                            border: '1px solid #fecaca',
+                            color: '#dc2626',
+                          }
+                        : {
+                            background: 'white',
+                            border: '1px solid #e5e7eb',
+                            color: '#1f2937',
+                            borderBottomLeftRadius: '4px',
+                            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                          }
+                      ),
+                    }}>
+                      <p style={{ margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.5, wordBreak: 'break-word' }}>
+                        {msg.text}
+                      </p>
                       {msg.link && (
                         <a
                           href={msg.link}
-                          className="block mt-2 text-green-600 font-medium hover:text-green-700 text-sm underline"
+                          style={{
+                            display: 'block',
+                            marginTop: '6px',
+                            color: '#059669',
+                            fontWeight: 500,
+                            fontSize: '13px',
+                            textDecoration: 'underline',
+                          }}
                         >
                           Go here →
                         </a>
                       )}
                       {msg.quickReplies && msg.quickReplies.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mt-2">
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
                           {msg.quickReplies.map((reply, idx) => (
-                            <motion.button
+                            <button
                               key={idx}
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
                               onClick={() => handleQuickReply(reply)}
-                              className="px-3 py-1.5 text-xs bg-white text-green-700 rounded-full border border-green-200 hover:bg-green-50 transition-colors shadow-sm"
+                              style={{
+                                padding: '4px 12px',
+                                fontSize: '12px',
+                                background: msg.sender === 'user' ? 'rgba(255,255,255,0.2)' : '#ecfdf5',
+                                color: msg.sender === 'user' ? 'white' : '#065f46',
+                                borderRadius: '20px',
+                                border: msg.sender === 'user' ? '1px solid rgba(255,255,255,0.3)' : '1px solid #a7f3d0',
+                                cursor: 'pointer',
+                              }}
                             >
                               {reply}
-                            </motion.button>
+                            </button>
                           ))}
                         </div>
                       )}
-                      <span className="text-[10px] opacity-60 mt-2 block">
+                      <span style={{ fontSize: '10px', opacity: 0.6, display: 'block', marginTop: '4px' }}>
                         {formatTime(msg.timestamp)}
                       </span>
-                    </motion.div>
+                    </div>
                   </div>
                 </React.Fragment>
               )
@@ -200,31 +327,43 @@ const ChatPage = () => {
           )}
           
           {isTyping && (
-            <motion.div
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex justify-start"
-            >
-              <div className="bg-white border border-gray-200 px-4 py-3 rounded-2xl rounded-tl-sm shadow-sm">
-                <div className="flex items-center gap-1.5">
-                  <motion.div 
-                    className="w-2 h-2 bg-green-500 rounded-full"
-                    animate={{ scale: [1, 1.5, 1] }}
-                    transition={{ duration: 1, repeat: Infinity, delay: 0 }}
-                  />
-                  <motion.div 
-                    className="w-2 h-2 bg-green-500 rounded-full"
-                    animate={{ scale: [1, 1.5, 1] }}
-                    transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
-                  />
-                  <motion.div 
-                    className="w-2 h-2 bg-green-500 rounded-full"
-                    animate={{ scale: [1, 1.5, 1] }}
-                    transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
-                  />
+            <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+              <div style={{
+                background: 'white',
+                border: '1px solid #e5e7eb',
+                padding: '10px 16px',
+                borderRadius: '16px',
+                borderBottomLeftRadius: '4px',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{
+                    display: 'inline-block',
+                    width: '8px',
+                    height: '8px',
+                    background: '#059669',
+                    borderRadius: '50%',
+                    animation: 'bounce 1s infinite',
+                  }} />
+                  <span style={{
+                    display: 'inline-block',
+                    width: '8px',
+                    height: '8px',
+                    background: '#059669',
+                    borderRadius: '50%',
+                    animation: 'bounce 1s infinite 0.2s',
+                  }} />
+                  <span style={{
+                    display: 'inline-block',
+                    width: '8px',
+                    height: '8px',
+                    background: '#059669',
+                    borderRadius: '50%',
+                    animation: 'bounce 1s infinite 0.4s',
+                  }} />
                 </div>
               </div>
-            </motion.div>
+            </div>
           )}
           
           <div ref={messagesEndRef} />
@@ -232,54 +371,143 @@ const ChatPage = () => {
       </div>
 
       {/* Quick Replies - Floating */}
-      {quickReplies.length > 0 && messages.length > 0 && (
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-4xl w-full mx-auto px-4 pb-2"
-        >
-          <div className="flex flex-wrap gap-1.5">
-            {quickReplies.map((reply, index) => (
-              <motion.button
-                key={index}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => handleQuickReply(reply)}
-                className="px-3 py-1.5 text-xs bg-white text-gray-700 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors shadow-sm"
-              >
-                {reply}
-              </motion.button>
-            ))}
-          </div>
-        </motion.div>
+      {quickReplies.length > 0 && messages.length > 0 && !isKeyboardVisible && (
+        <div style={{
+          flexShrink: 0,
+          padding: '8px 16px',
+          paddingBottom: '4px',
+          background: 'transparent',
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '6px',
+        }}>
+          {quickReplies.map((reply, index) => (
+            <button
+              key={index}
+              onClick={() => handleQuickReply(reply)}
+              style={{
+                padding: '6px 14px',
+                fontSize: '12px',
+                background: 'white',
+                color: '#374151',
+                borderRadius: '20px',
+                border: '1px solid #e5e7eb',
+                cursor: 'pointer',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                transition: 'background 0.2s',
+              }}
+            >
+              {reply}
+            </button>
+          ))}
+        </div>
       )}
 
-      {/* Input */}
-      <div className="bg-white border-t border-gray-200 p-4 sticky bottom-0">
-        <div className="max-w-4xl mx-auto">
-          <form onSubmit={handleSubmit} className="flex items-center gap-3">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Type your message..."
-              className="flex-1 px-4 py-3 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-green-500/30 focus:border-green-500 transition"
-            />
-            <motion.button
-              type="submit"
-              disabled={!input.trim()}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="w-12 h-12 bg-green-600 text-white rounded-full flex items-center justify-center hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 shadow-lg shadow-green-600/20"
-            >
-              <HiPaperAirplane size={18} className="rotate-90" />
-            </motion.button>
-          </form>
-          <p className="text-[10px] text-gray-400 text-center mt-2">
-            Sakumono Assist is here to help • Responses are AI-generated
-          </p>
-        </div>
+      {/* Input - Fixed at bottom */}
+      <div style={{
+        flexShrink: 0,
+        background: 'white',
+        borderTop: '1px solid #e5e7eb',
+        padding: '10px 16px',
+        paddingBottom: 'max(10px, env(safe-area-inset-bottom))',
+        // Prevent zoom
+        touchAction: 'manipulation',
+      }}>
+        <form 
+          onSubmit={handleSubmit} 
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            maxWidth: '100%',
+          }}
+        >
+          <input
+            ref={inputRef}
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Type your message..."
+            style={{
+              flex: 1,
+              padding: '10px 16px',
+              border: '1px solid #e5e7eb',
+              borderRadius: '24px',
+              fontSize: '16px', // Prevents iOS zoom
+              outline: 'none',
+              minWidth: 0,
+              background: '#f9fafb',
+              transition: 'border-color 0.2s',
+              // Prevent zoom
+              touchAction: 'manipulation',
+              WebkitAppearance: 'none',
+            }}
+            onFocus={(e) => {
+              // Scroll input into view on focus
+              setTimeout(() => {
+                e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+              }, 300)
+            }}
+          />
+          <button
+            type="submit"
+            disabled={!input.trim()}
+            style={{
+              width: '44px',
+              height: '44px',
+              background: input.trim() ? '#059669' : '#d1d5db',
+              color: 'white',
+              border: 'none',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: input.trim() ? 'pointer' : 'default',
+              flexShrink: 0,
+              transition: 'background 0.2s',
+              // Prevent zoom
+              touchAction: 'manipulation',
+            }}
+          >
+            <HiPaperAirplane size={18} style={{ transform: 'rotate(90deg)' }} />
+          </button>
+        </form>
+        <p style={{
+          fontSize: '10px',
+          color: '#9ca3af',
+          textAlign: 'center',
+          margin: '6px 0 0 0',
+        }}>
+          Sakumono Assist is here to help • Responses are AI-generated
+        </p>
       </div>
+
+      {/* CSS Animations */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+          }
+          @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+          }
+          .chat-page-container {
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+          }
+          input[type="text"] {
+            -webkit-appearance: none;
+            appearance: none;
+            font-size: 16px !important;
+          }
+          /* Prevent zoom on focus */
+          input:focus {
+            font-size: 16px !important;
+          }
+        `
+      }} />
     </div>
   )
 }

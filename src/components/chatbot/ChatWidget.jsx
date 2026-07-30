@@ -1,52 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { 
   HiOutlineChatAlt2, 
   HiX, 
   HiPaperAirplane, 
   HiUser,
-  HiOutlineExclamationCircle,
   HiOutlineSupport,
   HiOutlineChat,
-  HiArrowRight
+  HiArrowRight,
+  HiBell
 } from 'react-icons/hi'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useChatbot } from '../../context/ChatbotContext'
 import { useAuth } from '../../context/AuthContext'
 
-// ============================================================
-// ANIMATION VARIANTS - Optimized for performance
-// ============================================================
-const pulseVariants = {
-  initial: { scale: 1 },
-  animate: {
-    scale: [1, 1.05, 1],
-    transition: {
-      duration: 2,
-      repeat: Infinity,
-      ease: 'easeInOut'
-    }
-  },
-  hover: {
-    scale: 1.08,
-    transition: { duration: 0.3 }
-  }
-}
-
-const floatVariants = {
-  initial: { y: 0 },
-  animate: {
-    y: [0, -6, 0, -6, 0],
-    transition: {
-      duration: 3,
-      repeat: Infinity,
-      ease: 'easeInOut'
-    }
-  }
-}
-
 const ChatWidget = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const { 
     isOpen, 
     messages, 
@@ -63,7 +33,19 @@ const ChatWidget = () => {
   const [input, setInput] = useState('')
   const [showTooltip, setShowTooltip] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
+  const [isInputFocused, setIsInputFocused] = useState(false)
+  const [showPopup, setShowPopup] = useState(true)
+  const [popupMessageIndex, setPopupMessageIndex] = useState(0)
   const messagesEndRef = useRef(null)
+  const inputRef = useRef(null)
+
+  const popupMessages = [
+    { text: "💬 Need help? I'm here!", delay: 3000 },
+    { text: "🩺 Ask me about appointments", delay: 8000 },
+    { text: "💊 Pharmacy info available", delay: 13000 },
+    { text: "👨‍⚕️ Find a doctor now", delay: 18000 },
+  ]
 
   // Check if screen is mobile
   useEffect(() => {
@@ -75,6 +57,42 @@ const ChatWidget = () => {
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
+  // Check if we're on the chat page - hide widget
+  const isOnChatPage = location.pathname === '/chat'
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsVisible(!document.hidden)
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [])
+
+  // Auto-rotate popup messages
+  useEffect(() => {
+    if (isOpen || isOnChatPage) {
+      setShowPopup(false)
+      return
+    }
+
+    const timer = setTimeout(() => {
+      setPopupMessageIndex((prev) => (prev + 1) % popupMessages.length)
+      setShowPopup(true)
+    }, popupMessages[popupMessageIndex].delay)
+
+    return () => clearTimeout(timer)
+  }, [popupMessageIndex, isOpen, isOnChatPage])
+
+  // Hide popup after showing
+  useEffect(() => {
+    if (showPopup) {
+      const timer = setTimeout(() => {
+        setShowPopup(false)
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [showPopup])
+
   useEffect(() => {
     scrollToBottom()
   }, [messages, isTyping])
@@ -82,7 +100,7 @@ const ChatWidget = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowTooltip(false)
-    }, 8000)
+    }, 6000)
     return () => clearTimeout(timer)
   }, [])
 
@@ -95,10 +113,14 @@ const ChatWidget = () => {
     if (input.trim()) {
       sendMessage(input)
       setInput('')
+      if (inputRef.current) {
+        inputRef.current.blur()
+      }
     }
   }
 
   const handleOpenChat = () => {
+    setShowPopup(false)
     if (isMobile) {
       navigate('/chat')
       setIsOpen(false)
@@ -114,10 +136,102 @@ const ChatWidget = () => {
     })
   }
 
+  // Hide widget on chat page
+  if (isOnChatPage || !isVisible) return null
+
+  const currentPopup = popupMessages[popupMessageIndex]
+
   return (
-    // ✅ Fixed: Use fixed positioning and prevent layout shifts
-    <div className="fixed bottom-4 right-4 z-[9999] pointer-events-none">
-      <div className="pointer-events-auto relative">
+    <div 
+      className="chat-widget-container"
+      style={{
+        position: 'fixed',
+        bottom: '40px',
+        right: '19px',
+        zIndex: 9999,
+        width: 'auto',
+        height: 'auto',
+        pointerEvents: 'none',
+        WebkitBackfaceVisibility: 'hidden',
+        backfaceVisibility: 'hidden',
+        transform: 'translateZ(0)',
+        WebkitTransform: 'translateZ(0)',
+      }}
+    >
+      <div 
+        className="chat-widget-inner"
+        style={{
+          pointerEvents: 'auto',
+          position: 'relative',
+          width: 'auto',
+          height: 'auto',
+          willChange: 'transform',
+          transform: 'translateZ(0)',
+          WebkitTransform: 'translateZ(0)',
+        }}
+      >
+        {/* ============================================================ */}
+        {/* POPUP MESSAGE - FIXED POSITIONING */}
+        {/* ============================================================ */}
+        {!isOpen && showPopup && !isOnChatPage && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.9 }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+            style={{
+              position: 'absolute',
+              bottom: '70px',
+              right: '0',
+              left: 'auto',
+              background: 'linear-gradient(135deg, #059669, #047857)',
+              color: 'white',
+              padding: '10px 16px',
+              borderRadius: '12px',
+              fontSize: '13px',
+              fontWeight: 500,
+              boxShadow: '0 8px 25px rgba(5, 150, 105, 0.3)',
+              maxWidth: isMobile ? '180px' : '220px',
+              minWidth: isMobile ? '140px' : '180px',
+              whiteSpace: isMobile ? 'normal' : 'nowrap',
+              pointerEvents: 'none',
+              zIndex: 60,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              wordBreak: 'break-word',
+            }}
+          >
+            <span style={{ fontSize: isMobile ? '14px' : '18px', flexShrink: 0 }}>💬</span>
+            <span style={{ fontSize: isMobile ? '11px' : '13px', lineHeight: 1.3 }}>
+              {currentPopup.text}
+            </span>
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '-8px',
+                right: '16px',
+                border: '8px solid transparent',
+                borderTopColor: '#047857',
+              }}
+            />
+            <motion.div
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ duration: 1, repeat: Infinity }}
+              style={{
+                position: 'absolute',
+                top: '-4px',
+                right: '-4px',
+                width: '10px',
+                height: '10px',
+                background: '#fcd34d',
+                borderRadius: '50%',
+                border: '2px solid white',
+              }}
+            />
+          </motion.div>
+        )}
+
         <AnimatePresence>
           {isOpen && !isMobile && (
             <motion.div
@@ -125,26 +239,80 @@ const ChatWidget = () => {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 20, scale: 0.95 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="mb-3 w-[340px] sm:w-[380px] h-[480px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden"
-              style={{ willChange: 'transform, opacity' }}
+              style={{
+                marginBottom: '12px',
+                width: '340px',
+                maxWidth: 'calc(100vw - 32px)',
+                height: '480px',
+                maxHeight: 'calc(100vh - 120px)',
+                background: 'white',
+                borderRadius: '16px',
+                boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+                border: '1px solid #e5e7eb',
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
+                transform: 'translateZ(0)',
+                WebkitTransform: 'translateZ(0)',
+                willChange: 'transform, opacity',
+              }}
             >
               {/* Header */}
-              <div className="bg-gradient-to-r from-green-600 to-green-700 px-4 py-3 flex items-center justify-between flex-shrink-0">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-white text-lg flex-shrink-0">
+              <div style={{
+                background: 'linear-gradient(to right, #059669, #047857)',
+                padding: '12px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexShrink: 0,
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                  <div style={{
+                    width: '32px',
+                    height: '32px',
+                    background: 'rgba(255,255,255,0.2)',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white',
+                    fontSize: '18px',
+                    flexShrink: 0,
+                  }}>
                     <HiOutlineSupport />
                   </div>
-                  <div className="min-w-0">
-                    <p className="font-semibold text-white text-sm truncate">Sakumono Assist</p>
-                    <p className="text-[10px] text-green-100 flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 bg-green-300 rounded-full animate-pulse inline-block flex-shrink-0"></span>
+                  <div style={{ minWidth: 0 }}>
+                    <p style={{ fontWeight: 600, color: 'white', fontSize: '14px', margin: 0 }}>
+                      Sakumono Assist
+                    </p>
+                    <p style={{ fontSize: '10px', color: '#d1fae5', margin: 0, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <span style={{
+                        display: 'inline-block',
+                        width: '6px',
+                        height: '6px',
+                        background: '#6ee7b7',
+                        borderRadius: '50%',
+                        animation: 'pulse 2s infinite',
+                        flexShrink: 0,
+                      }} />
                       <span>Online • Ready to help</span>
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={toggleChat}
-                  className="text-white hover:bg-white/20 rounded-full p-1 transition-colors flex-shrink-0"
+                  style={{
+                    color: 'white',
+                    background: 'transparent',
+                    border: 'none',
+                    borderRadius: '50%',
+                    padding: '4px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
                   aria-label="Close chat"
                 >
                   <HiX size={18} />
@@ -152,50 +320,105 @@ const ChatWidget = () => {
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto px-3 py-3 bg-gray-50 space-y-2.5 min-h-0">
+              <div style={{
+                flex: 1,
+                overflowY: 'auto',
+                padding: '12px',
+                background: '#f9fafb',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px',
+                minHeight: 0,
+              }}>
                 {messages.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full text-gray-400 text-sm">
-                    <HiOutlineSupport className="text-3xl text-gray-300 mb-2" />
-                    <p>How can I help you today?</p>
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: '100%',
+                    color: '#9ca3af',
+                    fontSize: '14px',
+                  }}>
+                    <HiOutlineSupport style={{ fontSize: '32px', color: '#d1d5db', marginBottom: '8px' }} />
+                    <p style={{ margin: 0 }}>How can I help you today?</p>
                   </div>
                 ) : (
                   messages.map((msg) => (
                     <div
                       key={msg.id}
-                      className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                      style={{
+                        display: 'flex',
+                        justifyContent: msg.sender === 'user' ? 'flex-end' : 'flex-start',
+                      }}
                     >
-                      <div
-                        className={`max-w-[85%] px-3.5 py-2 rounded-2xl text-sm ${
-                          msg.sender === 'user'
-                            ? 'bg-green-600 text-white rounded-tr-sm'
-                            : msg.isError
-                            ? 'bg-red-50 border border-red-200 text-red-700'
-                            : 'bg-white border border-gray-200 text-gray-800 rounded-tl-sm shadow-sm'
-                        }`}
-                      >
-                        <p className="whitespace-pre-wrap text-sm leading-relaxed break-words">{msg.text}</p>
+                      <div style={{
+                        maxWidth: '85%',
+                        padding: '8px 14px',
+                        borderRadius: '16px',
+                        fontSize: '14px',
+                        ...(msg.sender === 'user'
+                          ? {
+                              background: '#059669',
+                              color: 'white',
+                              borderBottomRightRadius: '4px',
+                            }
+                          : msg.isError
+                          ? {
+                              background: '#fef2f2',
+                              border: '1px solid #fecaca',
+                              color: '#dc2626',
+                            }
+                          : {
+                              background: 'white',
+                              border: '1px solid #e5e7eb',
+                              color: '#1f2937',
+                              borderBottomLeftRadius: '4px',
+                              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                            }
+                        ),
+                      }}>
+                        <p style={{ margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.5, wordBreak: 'break-word' }}>
+                          {msg.text}
+                        </p>
                         {msg.link && (
                           <a
                             href={msg.link}
-                            className="block mt-1.5 text-green-600 font-medium hover:text-green-700 text-xs underline"
+                            style={{
+                              display: 'block',
+                              marginTop: '6px',
+                              color: '#059669',
+                              fontWeight: 500,
+                              fontSize: '12px',
+                              textDecoration: 'underline',
+                            }}
                           >
                             Go here →
                           </a>
                         )}
                         {msg.quickReplies && msg.quickReplies.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-1.5">
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
                             {msg.quickReplies.map((reply, index) => (
                               <button
                                 key={index}
                                 onClick={() => handleQuickReply(reply)}
-                                className="px-2.5 py-1 text-xs bg-green-50 text-green-700 rounded-full border border-green-200 hover:bg-green-100 transition-colors"
+                                style={{
+                                  padding: '4px 10px',
+                                  fontSize: '11px',
+                                  background: '#ecfdf5',
+                                  color: '#065f46',
+                                  borderRadius: '9999px',
+                                  border: '1px solid #a7f3d0',
+                                  cursor: 'pointer',
+                                  transition: 'background 0.2s',
+                                }}
                               >
                                 {reply}
                               </button>
                             ))}
                           </div>
                         )}
-                        <span className="text-[9px] opacity-60 mt-1 block">
+                        <span style={{ fontSize: '9px', opacity: 0.6, display: 'block', marginTop: '4px' }}>
                           {formatTime(msg.timestamp)}
                         </span>
                       </div>
@@ -204,12 +427,40 @@ const ChatWidget = () => {
                 )}
                 
                 {isTyping && (
-                  <div className="flex justify-start">
-                    <div className="bg-white border border-gray-200 px-3.5 py-2 rounded-2xl rounded-tl-sm shadow-sm">
-                      <div className="flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '200ms' }} />
-                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '400ms' }} />
+                  <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                    <div style={{
+                      background: 'white',
+                      border: '1px solid #e5e7eb',
+                      padding: '8px 14px',
+                      borderRadius: '16px',
+                      borderBottomLeftRadius: '4px',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span style={{
+                          display: 'inline-block',
+                          width: '6px',
+                          height: '6px',
+                          background: '#059669',
+                          borderRadius: '50%',
+                          animation: 'bounce 1s infinite',
+                        }} />
+                        <span style={{
+                          display: 'inline-block',
+                          width: '6px',
+                          height: '6px',
+                          background: '#059669',
+                          borderRadius: '50%',
+                          animation: 'bounce 1s infinite 0.2s',
+                        }} />
+                        <span style={{
+                          display: 'inline-block',
+                          width: '6px',
+                          height: '6px',
+                          background: '#059669',
+                          borderRadius: '50%',
+                          animation: 'bounce 1s infinite 0.4s',
+                        }} />
                       </div>
                     </div>
                   </div>
@@ -220,12 +471,32 @@ const ChatWidget = () => {
 
               {/* Quick Replies */}
               {quickReplies.length > 0 && messages.length > 0 && (
-                <div className="px-2.5 py-1.5 bg-gray-50 border-t border-gray-100 flex flex-wrap gap-1 max-h-14 overflow-y-auto flex-shrink-0">
+                <div style={{
+                  padding: '6px 10px',
+                  background: '#f9fafb',
+                  borderTop: '1px solid #f3f4f6',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '4px',
+                  maxHeight: '56px',
+                  overflowY: 'auto',
+                  flexShrink: 0,
+                }}>
                   {quickReplies.map((reply, index) => (
                     <button
                       key={index}
                       onClick={() => handleQuickReply(reply)}
-                      className="px-2.5 py-1 text-[11px] bg-white text-gray-700 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors whitespace-nowrap"
+                      style={{
+                        padding: '4px 10px',
+                        fontSize: '11px',
+                        background: 'white',
+                        color: '#374151',
+                        borderRadius: '9999px',
+                        border: '1px solid #e5e7eb',
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                        transition: 'background 0.2s',
+                      }}
                     >
                       {reply}
                     </button>
@@ -234,29 +505,78 @@ const ChatWidget = () => {
               )}
 
               {/* Input */}
-              <form onSubmit={handleSubmit} className="p-2.5 bg-white border-t border-gray-200 flex-shrink-0">
-                <div className="flex items-center gap-2">
+              <form 
+                onSubmit={handleSubmit} 
+                style={{
+                  padding: '10px',
+                  background: 'white',
+                  borderTop: '1px solid #e5e7eb',
+                  flexShrink: 0,
+                  position: 'relative',
+                }}
+              >
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '8px',
+                  flexWrap: 'nowrap',
+                }}>
                   <button
                     type="button"
                     onClick={clearMessages}
-                    className="text-gray-400 hover:text-gray-600 text-xs px-1.5 py-1 flex-shrink-0"
+                    style={{
+                      color: '#9ca3af',
+                      background: 'transparent',
+                      border: 'none',
+                      fontSize: '12px',
+                      padding: '4px 6px',
+                      cursor: 'pointer',
+                      flexShrink: 0,
+                    }}
                     title="Clear chat"
                   >
                     ✕
                   </button>
                   <input
+                    ref={inputRef}
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
+                    onFocus={() => setIsInputFocused(true)}
+                    onBlur={() => setIsInputFocused(false)}
                     placeholder="Type your message..."
-                    className="flex-1 px-3.5 py-1.5 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-green-500/30 focus:border-green-500 min-w-0"
+                    style={{
+                      flex: 1,
+                      padding: '6px 14px',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '9999px',
+                      fontSize: '16px',
+                      outline: 'none',
+                      minWidth: 0,
+                    }}
                   />
                   <button
                     type="submit"
                     disabled={!input.trim()}
-                    className="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      background: '#059669',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: input.trim() ? 'pointer' : 'default',
+                      opacity: input.trim() ? 1 : 0.5,
+                      flexShrink: 0,
+                      transition: 'background 0.2s',
+                      position: 'relative',
+                      zIndex: 1,
+                    }}
                   >
-                    <HiPaperAirplane size={14} className="rotate-90" />
+                    <HiPaperAirplane size={14} style={{ transform: 'rotate(90deg)' }} />
                   </button>
                 </div>
               </form>
@@ -265,101 +585,223 @@ const ChatWidget = () => {
         </AnimatePresence>
 
         {/* ============================================================ */}
-        {/* CHAT BUTTON - Fixed positioning and no layout shift */}
+        {/* CHAT BUTTON */}
         {/* ============================================================ */}
-        <motion.div
-          animate={isOpen ? 'initial' : 'animate'}
-          whileHover="hover"
-          variants={pulseVariants}
-          className="relative"
-          style={{ willChange: 'transform' }}
-        >
-          {/* Pulsing rings - Only show when not open */}
-          {!isOpen && (
-            <>
-              <motion.div
-                className="absolute inset-0 rounded-full bg-green-400/20"
-                animate={{
-                  scale: [1, 1.5, 1],
-                  opacity: [0.3, 0, 0.3],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: 'easeOut'
-                }}
-                style={{ width: '100%', height: '100%' }}
-              />
-              <motion.div
-                className="absolute inset-0 rounded-full bg-green-400/10"
-                animate={{
-                  scale: [1, 1.8, 1],
-                  opacity: [0.2, 0, 0.2],
-                }}
-                transition={{
-                  duration: 2.5,
-                  repeat: Infinity,
-                  ease: 'easeOut',
-                  delay: 0.5
-                }}
-                style={{ width: '100%', height: '100%' }}
-              />
-            </>
-          )}
-
-          {/* Button */}
-          <motion.button
-            onClick={handleOpenChat}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className={`
-              w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-2xl transition-colors duration-300 relative
-              ${isOpen 
-                ? 'bg-red-500 hover:bg-red-600 text-white' 
-                : 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700'
-              }
-            `}
-            style={{ willChange: 'transform' }}
-            aria-label={isOpen ? "Close chat" : "Open chat"}
+        {!isOnChatPage && (
+          <div
+            style={{
+              position: 'relative',
+              pointerEvents: 'auto',
+              transform: 'translateZ(0)',
+              WebkitTransform: 'translateZ(0)',
+            }}
           >
-            {isOpen ? (
-              <HiX />
-            ) : (
-              <HiOutlineChatAlt2 />
+            {/* Pulsing rings */}
+            {!isOpen && (
+              <>
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    borderRadius: '50%',
+                    background: 'rgba(5, 150, 105, 0.15)',
+                    animation: 'pulse-ring 2s ease-out infinite',
+                    width: '100%',
+                    height: '100%',
+                    pointerEvents: 'none',
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    borderRadius: '50%',
+                    background: 'rgba(5, 150, 105, 0.08)',
+                    animation: 'pulse-ring 2s ease-out infinite 0.5s',
+                    width: '100%',
+                    height: '100%',
+                    pointerEvents: 'none',
+                  }}
+                />
+              </>
             )}
 
-            {/* Unread badge */}
-            {!isOpen && unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center z-20 border-2 border-white shadow-lg">
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </span>
-            )}
-          </motion.button>
-        </motion.div>
+            {/* Button */}
+            <button
+              onClick={handleOpenChat}
+              style={{
+                width: '56px',
+                height: '56px',
+                borderRadius: '50%',
+                boxShadow: '0 8px 30px rgba(5, 150, 105, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '24px',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                position: 'relative',
+                background: isOpen 
+                  ? '#ef4444' 
+                  : 'linear-gradient(135deg, #059669, #047857)',
+                color: 'white',
+                transform: 'translateZ(0)',
+                WebkitTransform: 'translateZ(0)',
+              }}
+              aria-label={isOpen ? "Close chat" : "Open chat"}
+            >
+              {isOpen ? <HiX /> : <HiOutlineChatAlt2 />}
 
-        {/* Tooltip - Only show on desktop */}
-        {!isOpen && showTooltip && !isMobile && (
-          <motion.div
-            initial={{ opacity: 0, x: 10, scale: 0.9 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ delay: 0.5, duration: 0.4 }}
-            className="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-gray-900 text-white text-xs px-3.5 py-2 rounded-xl shadow-xl whitespace-nowrap z-50"
+              {/* Unread badge */}
+              {!isOpen && unreadCount > 0 && (
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: '-4px',
+                    right: '-4px',
+                    background: '#ef4444',
+                    color: 'white',
+                    fontSize: '10px',
+                    borderRadius: '50%',
+                    width: '20px',
+                    height: '20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '2px solid white',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    zIndex: 20,
+                  }}
+                >
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+
+              {/* Attention dot */}
+              {!isOpen && !showPopup && (
+                <motion.div
+                  animate={{ scale: [1, 1.3, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  style={{
+                    position: 'absolute',
+                    bottom: '2px',
+                    right: '2px',
+                    width: '10px',
+                    height: '10px',
+                    background: '#fcd34d',
+                    borderRadius: '50%',
+                    border: '2px solid white',
+                  }}
+                />
+              )}
+            </button>
+          </div>
+        )}
+
+        {/* Tooltip - Desktop only */}
+        {!isOpen && showTooltip && !isMobile && !isOnChatPage && (
+          <div
+            style={{
+              position: 'absolute',
+              right: 'calc(100% + 12px)',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              background: '#111827',
+              color: 'white',
+              fontSize: '12px',
+              padding: '8px 14px',
+              borderRadius: '12px',
+              boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
+              whiteSpace: 'nowrap',
+              pointerEvents: 'none',
+              zIndex: 50,
+              animation: 'fade-in 0.4s ease-out',
+            }}
           >
             💬 Chat with us
-            <div className="absolute right-0 top-1/2 transform translate-x-full -translate-y-1/2">
-              <div className="border-4 border-transparent border-l-gray-900" />
-            </div>
-          </motion.div>
+            <div
+              style={{
+                position: 'absolute',
+                right: '-6px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                border: '6px solid transparent',
+                borderLeftColor: '#111827',
+              }}
+            />
+          </div>
         )}
 
         {/* Mobile indicator */}
-        {isMobile && !isOpen && (
-          <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[8px] text-green-600 font-medium whitespace-nowrap bg-white/90 px-2 py-0.5 rounded-full shadow-sm border border-gray-100">
+        {isMobile && !isOpen && !isOnChatPage && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '-14px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              fontSize: '8px',
+              color: '#059669',
+              fontWeight: 500,
+              whiteSpace: 'nowrap',
+              background: 'rgba(255,255,255,0.9)',
+              padding: '2px 8px',
+              borderRadius: '9999px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+              border: '1px solid #f3f4f6',
+              pointerEvents: 'none',
+            }}
+          >
             Tap to chat
           </div>
         )}
       </div>
+
+      {/* CSS Animations */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+          }
+          @keyframes pulse-ring {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(1.5); opacity: 0; }
+          }
+          @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+          }
+          @keyframes fade-in {
+            0% { opacity: 0; transform: translateY(-50%) scale(0.95); }
+            100% { opacity: 1; transform: translateY(-50%) scale(1); }
+          }
+          @keyframes slide-in {
+            0% { opacity: 0; transform: translateY(10px) scale(0.95); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+          }
+          .chat-widget-container {
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+          }
+          .chat-widget-inner {
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+          }
+          input[type="text"] {
+            font-size: 16px !important;
+          }
+          @media (max-width: 768px) {
+            .chat-widget-container {
+              bottom: 16px !important;
+              right: 12px !important;
+            }
+          }
+        `
+      }} />
     </div>
   )
 }

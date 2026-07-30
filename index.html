@@ -2,14 +2,77 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- ✅ FIXED: Prevent zoom, improve mobile experience -->
+    <meta 
+      name="viewport" 
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" 
+    />
+    <!-- ✅ Additional mobile meta tags for better experience -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="theme-color" content="#059669" />
+    
     <title>Sakumono Community Hospital</title>
+    
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap"
       rel="stylesheet"
     />
+    
+    <!-- ✅ Prevent zoom on input focus (global fix) -->
+    <style>
+      /* Prevent zoom on mobile */
+      input, 
+      textarea, 
+      select {
+        font-size: 16px !important;
+        -webkit-text-size-adjust: 100% !important;
+        text-size-adjust: 100% !important;
+      }
+      
+      input:focus,
+      textarea:focus {
+        font-size: 16px !important;
+      }
+      
+      /* Prevent double-tap zoom */
+      button,
+      a,
+      [role="button"] {
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+      }
+      
+      /* Prevent layout shifts */
+      * {
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+      }
+      
+      /* Fix for iOS Safari 100vh issue */
+      .h-screen-fix {
+        height: 100vh;
+        height: 100dvh;
+      }
+      
+      /* Smooth scrolling */
+      html {
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      
+      body {
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
