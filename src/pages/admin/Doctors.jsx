@@ -143,7 +143,7 @@ const AdminDoctors = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <FaSpinner className="animate-spin text-3xl text-emerald-600" />
+        <FaStar className="animate-spin text-3xl text-emerald-600" />
       </div>
     )
   }
