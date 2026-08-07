@@ -7,6 +7,7 @@ import { AuthProvider } from "./context/AuthContext.jsx";
 import { CartProvider } from "./context/CartContext.jsx";
 import { NotificationProvider } from "./context/NotificationContext.jsx";
 import { ChatbotProvider } from "./context/ChatbotContext.jsx";
+import { MessageProvider } from './context/MessageContext.jsx';
 import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -15,6 +16,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <AuthProvider>
         <NotificationProvider>
           <CartProvider>
+            <MessageProvider>  
             <ChatbotProvider>
               <App />
               <Toaster
@@ -46,6 +48,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
                 }}
               />
             </ChatbotProvider>
+            </MessageProvider>
           </CartProvider>
         </NotificationProvider>
       </AuthProvider>

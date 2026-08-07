@@ -7,6 +7,9 @@ import DashboardLayout from "../components/common/DashboardLayout";
 // ============================================================
 // PUBLIC PAGES
 // ============================================================
+import PatientMessages from '../pages/patient/Messages';
+import DoctorMessages from '../pages/doctor/Messages';
+import AdminMessages from '../pages/admin/Messages';
 import Home from "../pages/public/Home";
 import Services from "../pages/public/Services";
 import About from "../pages/public/About";
@@ -56,7 +59,6 @@ import DoctorAppointments from "../pages/doctor/Appointments";
 import DoctorAvailability from "../pages/doctor/Availability";
 import DoctorProfilePage from "../pages/doctor/Profile";
 import EditDoctorProfile from '../pages/doctor/EditDoctorProfile'
-
 import AppointmentDetail from '../pages/patient/AppointmentDetail'
 
 // ============================================================
@@ -108,7 +110,6 @@ const AppRoutes = () => {
 
       <Route path="/chat" element={<ChatPage />} />
 
-
       {/* ============================================================ */}
       {/* AUTH PAGES (Standalone, no Navbar/Footer) */}
       {/* ============================================================ */}
@@ -124,6 +125,10 @@ const AppRoutes = () => {
         <Route element={<DashboardLayout portal="patient" />}>
           {/* Dashboard */}
           <Route path="/patient/dashboard" element={<PatientDashboard />} />
+
+          {/* Messages */}
+          <Route path="/patient/messages" element={<PatientMessages />} />
+          <Route path="/patient/messages/:userId" element={<PatientMessages />} />
 
           {/* Appointments */}
           <Route path="/patient/appointments" element={<PatientAppointments />} />
@@ -146,6 +151,7 @@ const AppRoutes = () => {
           <Route path="/patient/reviews" element={<PatientReviews />} />
           <Route path="/patient/reviews/new" element={<WriteReview />} />
           <Route path="/reviews/:id" element={<ReviewDetail />} />
+          
           {/* Notifications */}
           <Route path="/patient/notifications" element={<PatientNotifications />} />
         </Route>
@@ -156,10 +162,21 @@ const AppRoutes = () => {
       {/* ============================================================ */}
       <Route element={<ProtectedRoute roles={["doctor"]} />}>
         <Route element={<DashboardLayout portal="doctor" />}>
+          {/* Dashboard */}
           <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
+
+          {/* Messages */}
+          <Route path="/doctor/messages" element={<DoctorMessages />} />
+          <Route path="/doctor/messages/:userId" element={<DoctorMessages />} />
+
+          {/* Appointments */}
           <Route path="/doctor/appointments" element={<DoctorAppointments />} />
           <Route path="/doctor/appointments/:id" element={<AppointmentDetail />} />
+
+          {/* Availability */}
           <Route path="/doctor/availability" element={<DoctorAvailability />} />
+
+          {/* Profile */}
           <Route path="/doctor/profile" element={<DoctorProfilePage />} />
           <Route path="/doctor/profile/edit" element={<EditDoctorProfile />} />
         </Route>
@@ -172,6 +189,10 @@ const AppRoutes = () => {
         <Route element={<DashboardLayout portal="admin" />}>
           {/* Dashboard */}
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+
+          {/* Messages */}
+          <Route path="/admin/messages" element={<AdminMessages />} />
+          <Route path="/admin/messages/:userId" element={<AdminMessages />} />
 
           {/* Users Management */}
           <Route path="/admin/users" element={<AdminUsers />} />

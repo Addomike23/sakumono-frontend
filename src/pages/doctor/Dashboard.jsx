@@ -35,7 +35,7 @@ const DoctorDashboard = () => {
     confirmedAppointments: 0,
     completedAppointments: 0,
     cancelledAppointments: 0,
-    todayAppointments: 0,
+    todayAppointments: 0,  // ✅ Keep as number
     rating: 0,
     totalReviews: 0
   })
@@ -54,14 +54,24 @@ const DoctorDashboard = () => {
       const statsRes = await doctorsApi.getMyStats()
       const statsData = statsRes.data.stats || {}
       
-      // Ensure todayAppointments is a number
+      // ✅ FIX: Extract the count properly
+      let todayCount = 0
+      if (statsData.todayAppointments) {
+        if (typeof statsData.todayAppointments === 'number') {
+          todayCount = statsData.todayAppointments
+        } else if (typeof statsData.todayAppointments === 'object' && statsData.todayAppointments !== null) {
+          // If it's an object with count property
+          todayCount = statsData.todayAppointments.count || statsData.todayAppointments.length || 0
+        }
+      }
+
       setStats({
         totalAppointments: statsData.totalAppointments || 0,
         pendingAppointments: statsData.pendingAppointments || 0,
         confirmedAppointments: statsData.confirmedAppointments || 0,
         completedAppointments: statsData.completedAppointments || 0,
         cancelledAppointments: statsData.cancelledAppointments || 0,
-        todayAppointments: statsData.todayAppointments?.count || statsData.todayAppointments || 0,
+        todayAppointments: todayCount,  // ✅ Always a number
         rating: statsData.rating || 0,
         totalReviews: statsData.totalReviews || 0
       })
@@ -76,14 +86,20 @@ const DoctorDashboard = () => {
         date: today,
         limit: 10
       })
-      setTodayAppointments(appointmentsRes.data.appointments || [])
+      
+      // ✅ Make sure we're setting an array
+      const todayApts = appointmentsRes.data.appointments || []
+      setTodayAppointments(todayApts)
 
       // Fetch upcoming appointments (next 7 days)
       const upcomingRes = await appointmentsApi.getForDoctor({
         status: 'pending,confirmed',
         limit: 10
       })
-      setUpcomingAppointments(upcomingRes.data.appointments || [])
+      
+      // ✅ Make sure we're setting an array
+      const upcomingApts = upcomingRes.data.appointments || []
+      setUpcomingAppointments(upcomingApts)
 
     } catch (error) {
       console.error('Dashboard error:', error)
@@ -94,6 +110,7 @@ const DoctorDashboard = () => {
   }
 
   const formatDate = (date) => {
+    if (!date) return 'N/A'
     return new Date(date).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -122,6 +139,7 @@ const DoctorDashboard = () => {
   }
 
   const getStatusLabel = (status) => {
+    if (!status) return 'Unknown'
     return status.charAt(0).toUpperCase() + status.slice(1)
   }
 
@@ -154,7 +172,7 @@ const DoctorDashboard = () => {
                 </div>
                 <div>
                   <h1 className="text-2xl text-white md:text-3xl font-semibold">
-                    Welcome back, Dr. {user?.firstName}!
+                    Welcome back, Dr. {user?.firstName || 'Doctor'}!
                   </h1>
                   <p className="text-emerald-100 mt-0.5 text-sm">
                     Here's your practice overview for {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
@@ -210,7 +228,7 @@ const DoctorDashboard = () => {
             },
             { 
               icon: FaCalendarCheck, 
-              value: stats.todayAppointments || 0, 
+              value: stats.todayAppointments || 0,  // ✅ Now always a number
               label: "Today's",
               color: 'indigo'
             },
@@ -263,11 +281,11 @@ const DoctorDashboard = () => {
                 <FaCalendarAlt className="text-emerald-600" /> Today's Appointments
               </h2>
               <span className="text-sm bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full font-medium">
-                {todayAppointments.length} patients
+                {todayAppointments?.length || 0} patients
               </span>
             </div>
 
-            {todayAppointments.length === 0 ? (
+            {!todayAppointments || todayAppointments.length === 0 ? (
               <div className="text-center py-8">
                 <div className="text-4xl mb-3">📅</div>
                 <p className="text-gray-500 text-sm">No appointments today</p>
@@ -280,13 +298,13 @@ const DoctorDashboard = () => {
                     <div>
                       <p className="font-medium text-gray-800 text-sm flex items-center gap-2">
                         <span className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-xs font-bold text-gray-600">
-                          {apt.patient?.firstName?.[0]}{apt.patient?.lastName?.[0]}
+                          {apt.patient?.firstName?.[0] || 'U'}{apt.patient?.lastName?.[0] || ''}
                         </span>
-                        {apt.patient?.firstName} {apt.patient?.lastName}
+                        {apt.patient?.firstName || 'Unknown'} {apt.patient?.lastName || ''}
                       </p>
                       <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-2">
                         <FaClock size={10} className="text-gray-400" />
-                        {apt.timeSlot}
+                        {apt.timeSlot || 'N/A'}
                       </p>
                     </div>
                     <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(apt.status)}`}>
@@ -315,7 +333,7 @@ const DoctorDashboard = () => {
               </Link>
             </div>
 
-            {upcomingAppointments.length === 0 ? (
+            {!upcomingAppointments || upcomingAppointments.length === 0 ? (
               <div className="text-center py-8">
                 <div className="text-4xl mb-3">📋</div>
                 <p className="text-gray-500 text-sm">No upcoming appointments</p>
@@ -328,13 +346,13 @@ const DoctorDashboard = () => {
                     <div>
                       <p className="font-medium text-gray-800 text-sm flex items-center gap-2">
                         <span className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-xs font-bold text-gray-600">
-                          {apt.patient?.firstName?.[0]}{apt.patient?.lastName?.[0]}
+                          {apt.patient?.firstName?.[0] || 'U'}{apt.patient?.lastName?.[0] || ''}
                         </span>
-                        {apt.patient?.firstName} {apt.patient?.lastName}
+                        {apt.patient?.firstName || 'Unknown'} {apt.patient?.lastName || ''}
                       </p>
                       <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-2">
                         <FaCalendarAlt size={10} className="text-gray-400" />
-                        {formatDate(apt.date)} at {apt.timeSlot}
+                        {formatDate(apt.date)} at {apt.timeSlot || 'N/A'}
                       </p>
                     </div>
                     <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(apt.status)}`}>

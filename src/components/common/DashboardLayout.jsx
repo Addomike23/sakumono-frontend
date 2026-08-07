@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink, Outlet, Link } from "react-router-dom";
 import { HiMenu, HiX, HiOutlineLogout } from "react-icons/hi";
 import { 
@@ -7,9 +7,11 @@ import {
   FiStar, FiMessageCircle, FiMail, FiBell,
   FiBookOpen, FiPackage, FiShoppingCart, FiCheckSquare,
   FiChevronDown, FiChevronRight, FiClipboard,
-  FiUserCheck, FiUserPlus, FiBarChart2, FiSettings
+  FiUserCheck, FiUserPlus, FiBarChart2, FiSettings,
+  FiMessageSquare
 } from "react-icons/fi";
 import { useAuth } from "../../context/AuthContext";
+import { useMessages } from "../../context/MessageContext";
 
 // ============================================================
 // NAVIGATION CONFIG - ALL ROLES
@@ -21,6 +23,7 @@ const NAV_CONFIG = {
     { to: "/patient/appointments/new", label: "Book Appointment", icon: FiPlus },
     { to: "/patient/medical-records", label: "Medical Records", icon: FiFileText },
     { to: "/patient/orders", label: "Orders", icon: FiShoppingBag },
+    { to: "/patient/messages", label: "Messages", icon: FiMessageCircle, hasNotification: true },
     { to: "/patient/reviews", label: "My Reviews", icon: FiStar },
     { to: "/patient/notifications", label: "Notifications", icon: FiBell },
     { to: "/patient/profile", label: "Profile", icon: FiUser },
@@ -29,6 +32,7 @@ const NAV_CONFIG = {
     { to: "/doctor/dashboard", label: "Overview", icon: FiHome },
     { to: "/doctor/appointments", label: "Appointments", icon: FiCalendar },
     { to: "/doctor/availability", label: "Availability", icon: FiClock },
+    { to: "/doctor/messages", label: "Messages", icon: FiMessageCircle, hasNotification: true },
     { to: "/doctor/profile", label: "Profile", icon: FiUser },
   ],
   admin: [
@@ -37,11 +41,12 @@ const NAV_CONFIG = {
     { to: "/admin/doctors", label: "Doctors", icon: FiUserCheck },
     { to: "/admin/patients", label: "Patients", icon: FiUserPlus },
     { to: "/admin/appointments", label: "Appointments", icon: FiCalendar },
+    { to: "/admin/messages", label: "Messages", icon: FiMessageCircle, hasNotification: true },
     { to: "/admin/blogs", label: "Blog", icon: FiBookOpen },
     { to: "/admin/products", label: "Products", icon: FiPackage },
     { to: "/admin/orders", label: "Orders", icon: FiShoppingCart },
     { to: "/admin/reviews", label: "Reviews", icon: FiStar },
-    { to: "/admin/contacts", label: "Messages", icon: FiMessageCircle },
+    { to: "/admin/contacts", label: "Contact", icon: FiMail },
     { to: "/admin/subscribers", label: "Subscribers", icon: FiMail },
     { to: "/admin/notifications", label: "Notifications", icon: FiBell },
   ],
@@ -50,7 +55,31 @@ const NAV_CONFIG = {
 const DashboardLayout = ({ portal }) => {
   const [open, setOpen] = useState(false);
   const { user, logout } = useAuth();
+  
+  // ✅ Safely access messages context with fallback values
+  let unreadCount = 0;
+  let socketConnected = false;
+  let loadThreads = () => {};
+  
+  try {
+    const messages = useMessages();
+    if (messages) {
+      unreadCount = messages.unreadCount || 0;
+      socketConnected = messages.socketConnected || false;
+      loadThreads = messages.loadThreads || (() => {});
+    }
+  } catch (error) {
+    console.warn('Message context not available:', error);
+  }
+  
   const links = NAV_CONFIG[portal] || [];
+
+  // Load messages when user is authenticated
+  useEffect(() => {
+    if (user && typeof loadThreads === 'function') {
+      loadThreads();
+    }
+  }, [user, loadThreads]);
 
   // If no portal is specified or invalid, show nothing
   if (!portal || !links.length) {
@@ -86,6 +115,8 @@ const DashboardLayout = ({ portal }) => {
           <div className="space-y-1">
             {links.map((link) => {
               const Icon = link.icon;
+              const showBadge = link.hasNotification && unreadCount > 0;
+              
               return (
                 <NavLink
                   key={link.to}
@@ -93,7 +124,7 @@ const DashboardLayout = ({ portal }) => {
                   end={link.to === `/${portal}/dashboard`}
                   onClick={() => setOpen(false)}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    `flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 relative ${
                       isActive
                         ? "bg-[#145C52] text-white shadow-lg shadow-[#145C52]/20"
                         : "text-white/60 hover:bg-white/5 hover:text-white hover:translate-x-0.5"
@@ -101,7 +132,19 @@ const DashboardLayout = ({ portal }) => {
                   }
                 >
                   <Icon size={18} className="flex-shrink-0" />
-                  <span className="truncate">{link.label}</span>
+                  <span className="truncate flex-1">{link.label}</span>
+                  
+                  {/* Unread badge */}
+                  {showBadge && (
+                    <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-red-500 text-white text-[10px] font-bold rounded-full animate-pulse">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  )}
+                  
+                  {/* Online indicator for messages */}
+                  {link.label === "Messages" && socketConnected && (
+                    <span className="w-2 h-2 bg-green-400 rounded-full absolute right-3 top-1/2 -translate-y-1/2" />
+                  )}
                 </NavLink>
               );
             })}
@@ -143,7 +186,25 @@ const DashboardLayout = ({ portal }) => {
           >
             {open ? <HiX /> : <HiMenu />}
           </button>
-          <div className="flex items-center gap-3 text-sm">
+          
+          <div className="flex items-center gap-4 text-sm">
+            {/* Message Icon in Header */}
+            <Link
+              to={`/${portal}/messages`}
+              className="relative text-gray-500 hover:text-gray-700 transition-colors p-2 rounded-full hover:bg-gray-100"
+              aria-label="Messages"
+            >
+              <FiMessageSquare size={20} />
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[9px] font-bold rounded-full">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+              {socketConnected && (
+                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-white" />
+              )}
+            </Link>
+            
             <span className="text-gray-500 hidden sm:inline">Signed in as</span>
             <span className="font-medium text-gray-900">
               {user?.firstName} {user?.lastName}
