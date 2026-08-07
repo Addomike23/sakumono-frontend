@@ -37,6 +37,8 @@ import toast from "react-hot-toast";
 
 const IMG = "https://themewagon.github.io/Clinic/assets/img/health";
 
+
+
 const fadeUp = {
   hidden: { opacity: 0, y: 28 },
   visible: (i = 0) => ({
@@ -48,17 +50,19 @@ const fadeUp = {
 
 const textVariants = {
   hidden: { opacity: 0, y: 20 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     y: 0,
     transition: { duration: 0.5, ease: "easeOut" }
   },
-  exit: { 
-    opacity: 0, 
+  exit: {
+    opacity: 0,
     y: -20,
     transition: { duration: 0.3 }
   }
 };
+
+
 
 const DEPARTMENTS = [
   {
@@ -158,7 +162,7 @@ const Home = () => {
   const [topReviews, setTopReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  
+
   const [heroMessages, setHeroMessages] = useState([]);
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [isHeroLoading, setIsHeroLoading] = useState(true);
@@ -219,11 +223,11 @@ const Home = () => {
         setReviewStats(reviewsRes.data.stats);
         setTopReviews(reviewsRes.data.reviews || []);
       } catch (err) {
-      toast.error('Failed to load some content');
-        
+        toast.error('Failed to load some content');
+
       }
     } catch (error) {
-      
+
       toast.error('Failed to load some content');
     } finally {
       setLoading(false);
@@ -336,7 +340,7 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 grid lg:grid-cols-2 gap-8 lg:gap-16 relative">
           <div>
             {/* Trust Badges */}
-            <motion.div 
+            <motion.div
               className="flex flex-wrap gap-2 sm:gap-3 mb-4"
               initial="hidden"
               animate="visible"
@@ -353,7 +357,7 @@ const Home = () => {
                   FiUsers: FiUsers
                 };
                 const Icon = IconMap[IconName] || FiShield;
-                
+
                 return (
                   <motion.span
                     key={label}
@@ -379,10 +383,10 @@ const Home = () => {
                 variants={textVariants}
                 className="relative"
               >
-                <h1 className="text-3xl sm:text-4xl lg:text-[3.4rem] leading-[1.08] font-medium text-gray-900">
+                <h1 className="text-3xl mb-4 sm:text-4xl lg:text-[3.4rem] leading-[1.08] mt-4 font-medium text-gray-900">
                   {currentMessage?.title || "Excellence in Healthcare"} <br />
-                  <motion.span 
-                    className="text-green-600 inline-block"
+                  <motion.span
+                    className="text-green-600 inline-block mb-4"
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.3, duration: 0.5 }}
@@ -390,9 +394,9 @@ const Home = () => {
                     {currentMessage?.highlight || "With Compassionate Care"}
                   </motion.span>
                 </h1>
-                
+
                 {/* Animated Description */}
-                <motion.p 
+                <motion.p
                   className="mt-4 sm:mt-6 text-base md:text-lg text-gray-600 max-w-md leading-relaxed"
                   initial="hidden"
                   animate="visible"
@@ -402,8 +406,8 @@ const Home = () => {
                 </motion.p>
 
                 {/* Animated Stats */}
-                <motion.div 
-                  className="flex flex-wrap gap-4 sm:gap-6 mt-6 sm:mt-8"
+                <motion.div
+                  className="flex flex-wrap mb-4 gap-4 sm:gap-6 mt-6 sm:mt-8"
                   initial="hidden"
                   animate="visible"
                   variants={fadeUp}
@@ -421,7 +425,7 @@ const Home = () => {
                       variants={fadeUp}
                       className="px-4 sm:px-6 py-3 sm:py-4 rounded-xl bg-green-50 border border-green-100 hover:shadow-md transition-shadow flex-1 min-w-[80px] sm:min-w-[100px]"
                     >
-                      <motion.p 
+                      <motion.p
                         className="text-xl sm:text-2xl font-semibold text-green-700"
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
@@ -435,7 +439,7 @@ const Home = () => {
                 </motion.div>
 
                 {/* Animated CTAs */}
-                <motion.div 
+                <motion.div
                   className="mt-6 sm:mt-9 flex flex-wrap items-center gap-3 sm:gap-4"
                   initial="hidden"
                   animate="visible"
@@ -467,8 +471,8 @@ const Home = () => {
 
                 {/* Message Indicator Dots */}
                 {heroMessages.length > 1 && (
-                  <motion.div 
-                    className="flex gap-2 mt-6 sm:mt-8"
+                  <motion.div
+                    className="flex gap-2 mt-6 mb-4 sm:mt-8"
                     initial="hidden"
                     animate="visible"
                     variants={fadeUp}
@@ -477,11 +481,10 @@ const Home = () => {
                       <button
                         key={index}
                         onClick={() => setCurrentMessageIndex(index)}
-                        className={`h-2 rounded-full transition-all duration-300 ${
-                          index === currentMessageIndex 
-                            ? 'w-8 bg-green-600' 
-                            : 'w-2 bg-gray-300 hover:bg-gray-400'
-                        }`}
+                        className={`h-2 rounded-full transition-all duration-300 ${index === currentMessageIndex
+                          ? 'w-8 bg-green-600'
+                          : 'w-2 bg-gray-300 hover:bg-gray-400'
+                          }`}
                         aria-label={`Go to message ${index + 1}`}
                       />
                     ))}
@@ -525,7 +528,7 @@ const Home = () => {
                   <span className="text-xs font-medium text-gray-500">Available</span>
                 </div>
               </div>
-              
+
               <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-100 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-green-100 flex items-center justify-center text-green-700">
@@ -588,7 +591,7 @@ const Home = () => {
               </div>
             </div>
           </motion.div>
-          
+
           <motion.div
             initial={{ opacity: 0, x: 40 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -596,14 +599,31 @@ const Home = () => {
             transition={{ duration: 0.6 }}
             className="relative"
           >
-            <div className="rounded-2xl overflow-hidden shadow-xl">
+            {/* ✅ FIXED: Properly closed div structure */}
+            <div className="rounded-2xl overflow-hidden shadow-xl bg-gray-50">
               <img
-                src={`${IMG}/staff-10.webp`}
+                src="/close.jpeg"
                 alt="Compassionate Care"
-                className="w-full h-64 sm:h-80 lg:h-96 object-cover"
+                className="w-full h-auto max-h-auto object-contain"
                 loading="lazy"
+                onError={(e) => {
+                  // Fallback if image doesn't load
+                  e.target.style.display = 'none';
+                  const parent = e.target.parentElement;
+                  const fallback = document.createElement('div');
+                  fallback.className = 'w-full h-64 sm:h-80 flex items-center justify-center text-gray-400';
+                  fallback.innerHTML = `
+              <div class="text-center">
+                <p class="text-lg">Compassionate Care</p>
+                <p class="text-sm">Image not available</p>
+              </div>
+            `;
+                  parent.appendChild(fallback);
+                }}
               />
             </div>
+            {/* ✅ This div is now properly closed */}
+
             <div className="absolute -bottom-4 sm:-bottom-6 -left-4 sm:-left-6 bg-white rounded-xl shadow-lg p-3 sm:p-4 border border-gray-100">
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-green-100 flex items-center justify-center text-green-700">
@@ -841,13 +861,23 @@ const Home = () => {
                     to={doc.user?._id ? `/doctors/${doc.user._id}` : "/doctors"}
                     className="block bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow group"
                   >
-                    <div className="relative aspect-[4/3] bg-green-50 flex items-center justify-center overflow-hidden">
+                    <div className="relative aspect-[4/4] bg-green-50 flex items-center justify-center overflow-hidden">
                       {doc.user?.profileImage ? (
                         <img
                           src={doc.user.profileImage}
                           alt={`${doc.user.firstName} ${doc.user.lastName}`}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
+                          // ✅ Added object-top to show head/face
                           loading="lazy"
+                          onError={(e) => {
+                            // ✅ Fallback if image fails to load
+                            e.target.style.display = 'none'
+                            const parent = e.target.parentElement
+                            const fallback = document.createElement('div')
+                            fallback.className = 'w-full h-full flex items-center justify-center bg-green-50'
+                            fallback.innerHTML = '<svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="80" width="80" xmlns="http://www.w3.org/2000/svg"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>'
+                            parent.appendChild(fallback)
+                          }}
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-green-50">
@@ -934,26 +964,26 @@ const Home = () => {
           <div className="grid md:grid-cols-3 gap-4 sm:gap-6">
             {topReviews.length === 0 ? (
               [
-                { 
-                  name: "Sarah Mensah", 
+                {
+                  name: "Sarah Mensah",
                   email: "sarah.m@email.com",
-                  content: "Exceptional care and compassionate staff. Highly recommend Sakumono Community Hospital.", 
+                  content: "Exceptional care and compassionate staff. Highly recommend Sakumono Community Hospital.",
                   rating: 5,
                   date: "2024-01-15",
                   avatar: null
                 },
-                { 
-                  name: "James Asare", 
+                {
+                  name: "James Asare",
                   email: "james.a@email.com",
-                  content: "The doctors here are truly world-class. They saved my life with their quick thinking and expertise.", 
+                  content: "The doctors here are truly world-class. They saved my life with their quick thinking and expertise.",
                   rating: 5,
                   date: "2024-01-10",
                   avatar: null
                 },
-                { 
-                  name: "Ama Serwaa", 
+                {
+                  name: "Ama Serwaa",
                   email: "ama.s@email.com",
-                  content: "Best healthcare experience in Tema. The facility is modern and the staff are incredibly caring.", 
+                  content: "Best healthcare experience in Tema. The facility is modern and the staff are incredibly caring.",
                   rating: 5,
                   date: "2024-01-05",
                   avatar: null
@@ -1017,7 +1047,7 @@ const Home = () => {
                 const reviewerName = rev.name || rev.patient?.name || 'Anonymous';
                 const reviewerEmail = rev.email || rev.patient?.email || '';
                 const reviewerAvatar = rev.avatar || rev.patient?.profileImage || null;
-                
+
                 return (
                   <motion.div
                     key={rev._id || i}
@@ -1040,7 +1070,7 @@ const Home = () => {
                           {getInitials(reviewerName)}
                         </div>
                       )}
-                      
+
                       <div className="flex-1 min-w-0">
                         <h4 className="font-semibold text-gray-900 text-sm sm:text-base">{reviewerName}</h4>
                         <div className="flex items-center gap-2 mt-0.5">

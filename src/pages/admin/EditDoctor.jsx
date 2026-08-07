@@ -68,7 +68,7 @@ const EditDoctor = () => {
         const doctorId = d.user?._id || d._id || d.user?.id || d.id
         return doctorId === id
       })
-      
+
       if (!doctor) {
         toast.error('Doctor not found')
         navigate('/admin/doctors')
@@ -76,7 +76,7 @@ const EditDoctor = () => {
       }
 
       const userData = doctor.user || doctor
-      
+
       setFormData({
         firstName: userData.firstName || '',
         lastName: userData.lastName || '',
@@ -95,11 +95,11 @@ const EditDoctor = () => {
           country: userData.address?.country || 'Ghana'
         }
       })
-      
+
       setCurrentImage(userData.profileImage || null)
-      
+
     } catch (error) {
-      
+
       toast.error('Failed to load doctor details')
       navigate('/admin/doctors')
     } finally {
@@ -159,9 +159,10 @@ const EditDoctor = () => {
     setImagePreview(null)
   }
 
+
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
+
     if (!formData.firstName || !formData.lastName || !formData.email) {
       toast.error('Please fill in all required fields')
       return
@@ -170,14 +171,14 @@ const EditDoctor = () => {
     setSaving(true)
     try {
       const data = new FormData()
-      
+
       // User fields
       data.append('firstName', formData.firstName)
       data.append('lastName', formData.lastName)
       data.append('email', formData.email)
       data.append('phone', formData.phone || '')
       data.append('address', JSON.stringify(formData.address))
-      
+
       // Doctor fields
       data.append('specialization', formData.specialization || '')
       data.append('qualifications', JSON.stringify(formData.qualifications))
@@ -185,19 +186,20 @@ const EditDoctor = () => {
       data.append('consultationFee', formData.consultationFee || '0')
       data.append('bio', formData.bio || '')
       data.append('isAvailableForConsultation', formData.isAvailableForConsultation ? 'true' : 'false')
-      
+
       // Profile image
       if (profileImage) {
         data.append('profileImage', profileImage)
       }
 
-      // Update doctor
-      await doctorsApi.updateMyProfile(data)
-      
+      // ✅ FIX: Use admin endpoint instead of updateMyProfile
+      // You need to create this endpoint in your backend
+      await doctorsApi.updateDoctorByAdmin(id, data)
+
       toast.success('Doctor updated successfully!')
       navigate('/admin/doctors')
     } catch (error) {
-      
+      console.error('Update error:', error)
       toast.error(error.response?.data?.message || 'Failed to update doctor')
     } finally {
       setSaving(false)
@@ -223,11 +225,10 @@ const EditDoctor = () => {
           <h1 className="text-2xl font-semibold text-gray-900">
             Edit Doctor
           </h1>
-          <span className={`px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1 ${
-            formData.isAvailableForConsultation 
-              ? 'bg-green-100 text-green-700' 
+          <span className={`px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1 ${formData.isAvailableForConsultation
+              ? 'bg-green-100 text-green-700'
               : 'bg-red-100 text-red-700'
-          }`}>
+            }`}>
             {formData.isAvailableForConsultation ? <FaCheckCircle size={12} /> : <FaTimesCircle size={12} />}
             {formData.isAvailableForConsultation ? 'Available' : 'Unavailable'}
           </span>
@@ -241,11 +242,13 @@ const EditDoctor = () => {
         >
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Profile Image */}
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
                 Profile Image
               </label>
               <div className="flex items-center gap-4">
+                {/* Image Preview */}
                 {imagePreview || currentImage ? (
                   <div className="relative w-24 h-24 rounded-full overflow-hidden border border-gray-200 group">
                     <img
@@ -262,17 +265,35 @@ const EditDoctor = () => {
                     </button>
                   </div>
                 ) : (
-                  <label className="w-24 h-24 rounded-full border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-emerald-400 transition-colors">
+                  <div
+                    onClick={() => document.getElementById('profileImageInput').click()}
+                    className="w-24 h-24 rounded-full border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-emerald-400 transition-colors"
+                  >
                     <FaUpload className="text-gray-400 text-xl mb-1" />
                     <span className="text-xs text-gray-400">Upload</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="hidden"
-                    />
-                  </label>
+                  </div>
                 )}
+
+                {/* Hidden File Input */}
+                <input
+                  id="profileImageInput"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
+                />
+
+                {/* Change Image Button */}
+                {imagePreview || currentImage ? (
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById('profileImageInput').click()}
+                    className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-sm hover:bg-gray-200 transition-colors"
+                  >
+                    Change Image
+                  </button>
+                ) : null}
+
                 <div className="text-xs text-gray-400">
                   <p>JPG, PNG, WebP (Max 2MB)</p>
                 </div>

@@ -7,6 +7,16 @@ export const doctorsApi = {
   getAvailability: (doctorId) =>
     axiosClient.get("/doctors/availability", { params: { doctorId } }),
   getById: (id) => axiosClient.get(`/doctors/${id}`),
+  
+  // Admin update a specific doctor
+  updateDoctorByAdmin: (id, data) => 
+    axiosClient.put(`/doctors/admin/${id}`, data, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    }),
+  
+  // Admin delete a doctor
+  deleteDoctorByAdmin: (id) => 
+    axiosClient.delete(`/doctors/admin/${id}`),
 
   // Doctor's own profile
   getMyProfile: () => axiosClient.get("/doctors/profile"),

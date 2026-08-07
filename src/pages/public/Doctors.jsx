@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { 
-  FiSearch, FiUser, FiStar, FiMapPin, FiClock, 
+import {
+  FiSearch, FiUser, FiStar, FiMapPin, FiClock,
   FiFilter, FiChevronDown, FiX, FiAward,
   FiPhone, FiMail, FiCheckCircle,
   FiXCircle, FiUserCheck
@@ -43,7 +43,7 @@ const Doctors = () => {
       }
       if (searchTerm) params.search = searchTerm
       if (selectedSpecialization) params.specialization = selectedSpecialization
-      
+
       const response = await doctorsApi.getAll(params)
       setDoctors(response.data.doctors || [])
       setPagination(response.data.pagination || { page: 1, limit: 8, total: 0, pages: 0 })
@@ -188,7 +188,7 @@ const Doctors = () => {
           <p className="text-sm text-gray-500">
             {pagination.total > 0 ? (
               <>Showing {((pagination.page - 1) * pagination.limit) + 1}-
-              {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} doctors</>
+                {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} doctors</>
             ) : (
               'No doctors found'
             )}
@@ -223,6 +223,7 @@ const Doctors = () => {
               const totalReviews = doctor.totalReviews || 0
               const isAvailable = doctor.isAvailableForConsultation !== false
               const bio = doctor.bio || 'Experienced medical professional dedicated to providing quality healthcare.'
+              const profileImage = doctor.user?.profileImage
 
               return (
                 <motion.div
@@ -234,28 +235,38 @@ const Doctors = () => {
                   custom={index}
                   className="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 group overflow-hidden"
                 >
-                  {/* Image Section */}
+                  {/* Image Section - FIXED */}
                   <Link to={`/doctors/${doctorId}`} className="block">
-                    <div className="aspect-[4/3] bg-gradient-to-br from-green-50 to-blue-50 overflow-hidden relative">
-                      {doctor.user?.profileImage ? (
+                    <div className="aspect-[4/4] bg-gradient-to-br from-green-50 to-blue-50 overflow-hidden relative">
+                      {profileImage ? (
                         <img
-                          src={doctor.user.profileImage}
+                          src={profileImage}
                           alt={`${firstName} ${lastName}`}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
                           loading="lazy"
+                          onError={(e) => {
+                            // If image fails to load, show fallback
+                            e.target.style.display = 'none'
+                            // Show fallback icon
+                            const parent = e.target.parentElement
+                            const fallback = document.createElement('div')
+                            fallback.className = 'w-full h-full flex items-center justify-center text-6xl text-green-300'
+                            fallback.innerHTML = '<svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="60" width="60" xmlns="http://www.w3.org/2000/svg"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>'
+                            parent.appendChild(fallback)
+                          }}
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-6xl text-green-300">
                           <FiUser />
                         </div>
                       )}
+
                       {/* Availability Badge */}
                       <div className="absolute top-3 right-3">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium border backdrop-blur-sm ${
-                          isAvailable 
-                            ? 'bg-green-50/90 border-green-200 text-green-700' 
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium border backdrop-blur-sm ${isAvailable
+                            ? 'bg-green-50/90 border-green-200 text-green-700'
                             : 'bg-red-50/90 border-red-200 text-red-700'
-                        }`}>
+                          }`}>
                           {isAvailable ? (
                             <><FiCheckCircle className="inline mr-1" size={12} /> Available</>
                           ) : (
@@ -263,6 +274,7 @@ const Doctors = () => {
                           )}
                         </span>
                       </div>
+
                       {/* Rating Badge */}
                       {rating > 0 && (
                         <div className="absolute bottom-3 left-3 px-3 py-1 rounded-full bg-white/90 backdrop-blur-sm text-xs font-medium text-gray-700 flex items-center gap-1 border border-gray-100">
@@ -271,6 +283,7 @@ const Doctors = () => {
                           <span className="text-gray-400 text-[10px]">({totalReviews})</span>
                         </div>
                       )}
+
                       {/* Experience Badge */}
                       <div className="absolute bottom-3 right-3 px-3 py-1 rounded-full bg-white/90 backdrop-blur-sm text-xs font-medium text-gray-700 border border-gray-100">
                         <FiAward className="inline mr-1 text-green-500" size={12} />
